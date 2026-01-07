@@ -15,10 +15,15 @@ export function HomeScreen({ navigation }: Props) {
 				delicious meal.
 			</Text>
 
-			<View className="mt-10">
+			<View className="gap-5 mt-10">
 				<PrimaryButton
 					title="Browse by Category"
 					onPress={() => navigation.navigate("Filters")}
+				/>
+
+				<PrimaryButton
+					title="Search a Meal"
+					onPress={() => navigation.navigate("Search")}
 				/>
 			</View>
 		</View>
