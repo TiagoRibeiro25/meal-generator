@@ -25,6 +25,11 @@ export function HomeScreen({ navigation }: Props) {
 					title="Search a Meal"
 					onPress={() => navigation.navigate("Search")}
 				/>
+
+				<PrimaryButton
+					title="My Favourites"
+					onPress={() => navigation.navigate("Favourites")}
+				/>
 			</View>
 		</View>
 	);
