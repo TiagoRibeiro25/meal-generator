@@ -1,14 +1,15 @@
+import { API_BASE_URL } from "../config/api";
 import { Meal } from "../types/Meal";
 
 export async function fetchCategories(): Promise<string[]> {
-	const res = await fetch("https://www.themealdb.com/api/json/v1/1/list.php?c=list");
+	const res = await fetch(`${API_BASE_URL}/list.php?c=list`);
 	const data = await res.json();
 	return data.meals.map((c: any) => c.strCategory);
 }
 
 export async function fetchMealsByCategory(category: string): Promise<Meal[]> {
 	const res = await fetch(
-		`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category}`
+		`${API_BASE_URL}/filter.php?c=${category}`
 	);
 	const data = await res.json();
 
@@ -26,7 +27,7 @@ export async function fetchMealsByCategory(category: string): Promise<Meal[]> {
 }
 
 export async function fetchMealById(id: string): Promise<Meal> {
-	const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
+	const res = await fetch(`${API_BASE_URL}/lookup.php?i=${id}`);
 	const data = await res.json();
 	const apiMeal = data.meals[0];
 
@@ -54,7 +55,7 @@ export async function fetchMealById(id: string): Promise<Meal> {
 
 export async function searchMealsByName(name: string): Promise<Meal[]> {
 	const res = await fetch(
-		`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(name)}`
+		`${API_BASE_URL}/search.php?s=${encodeURIComponent(name)}`
 	);
 	const data = await res.json();
 
