@@ -34,7 +34,7 @@ export function CategoryFilter({ categories, selectedCategory, onSelect, vertica
 
   // Horizontal layout → compact buttons
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-4">
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 my-4">
       {categories.map((cat) => {
         const isSelected = selectedCategory === cat;
         return (

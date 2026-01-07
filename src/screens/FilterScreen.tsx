@@ -1,14 +1,14 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, ScrollView, Text, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CategoryFilter } from "../components/CategoryFilter";
 import { MealCard } from "../components/MealCard";
 import { RootStackParamList } from "../navigation/StackNavigator";
 import {
-  fetchCategories,
-  fetchMealById,
-  fetchMealsByCategory,
+	fetchCategories,
+	fetchMealById,
+	fetchMealsByCategory,
 } from "../services/mealService";
 import { Meal } from "../types/Meal";
 
@@ -21,7 +21,7 @@ export function FilterScreen({ navigation }: Props) {
 	const [loadingCategories, setLoadingCategories] = useState(true);
 	const [loadingMeals, setLoadingMeals] = useState(false);
 
-	// Load categories
+	// Fetch categories
 	useEffect(() => {
 		async function loadCategories() {
 			setLoadingCategories(true);
@@ -37,7 +37,7 @@ export function FilterScreen({ navigation }: Props) {
 		loadCategories();
 	}, []);
 
-	// Load meals for selected category
+	// Fetch meals for selected category
 	useEffect(() => {
 		if (!selectedCategory) {
 			setMeals([]);
@@ -55,30 +55,35 @@ export function FilterScreen({ navigation }: Props) {
 				setLoadingMeals(false);
 			}
 		}
-
 		loadMeals();
 	}, [selectedCategory]);
 
-	async function handleMealPress(id: string) {
-		try {
-			const meal = await fetchMealById(id);
-			navigation.navigate("Meal", { meal });
-		} catch (e) {
-			console.error(e);
-		}
-	}
+	// Navigate to meal screen
+	const handleMealPress = useCallback(
+		async (id: string) => {
+			try {
+				const meal = await fetchMealById(id);
+				navigation.navigate("Meal", { meal });
+			} catch (e) {
+				console.error(e);
+			}
+		},
+		[navigation]
+	);
+
+	// Render meal item with memoization
+	const renderMealItem = useCallback(
+		({ item }: { item: Meal }) => (
+			<MealCard meal={item} onPress={() => handleMealPress(item.idMeal)} />
+		),
+		[handleMealPress]
+	);
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
-			<ScrollView
-				contentContainerStyle={{
-					paddingHorizontal: 24,
-					paddingBottom: 40,
-					paddingTop: 12,
-				}}
-				showsVerticalScrollIndicator={false}
-			>
-				<Text className="mb-4 text-3xl font-bold text-white">Filter Meals</Text>
+			{/* Categories + title + placeholder */}
+			<View className="px-6 pt-6">
+				<Text className="mb-2 text-3xl font-bold text-white">Filter Meals</Text>
 
 				{!loadingCategories && meals.length === 0 && (
 					<Text className="mb-4 text-lg text-zinc-400">
@@ -96,26 +101,32 @@ export function FilterScreen({ navigation }: Props) {
 						vertical={meals.length === 0}
 					/>
 				)}
+			</View>
 
-				{loadingMeals && (
-					<View className="items-center justify-center mt-6">
-						<ActivityIndicator size="large" color="#34D399" />
-					</View>
-				)}
+			{/* Meals */}
+			{loadingMeals && (
+				<View className="items-center justify-center flex-1 mt-6">
+					<ActivityIndicator size="large" color="#34D399" />
+				</View>
+			)}
 
-				{meals.length > 0 && (
-					<FlatList
-						data={meals}
-						keyExtractor={(item) => item.idMeal}
-						renderItem={({ item }) => (
-							<MealCard meal={item} onPress={() => handleMealPress(item.idMeal)} />
-						)}
-						contentContainerStyle={{ paddingTop: 12 }}
-						scrollEnabled={false} // Scroll handled by parent ScrollView
-						showsVerticalScrollIndicator={false}
-					/>
-				)}
-			</ScrollView>
+			{meals.length > 0 && (
+				<FlatList
+					data={meals}
+					keyExtractor={(item) => item.idMeal}
+					renderItem={renderMealItem}
+					initialNumToRender={10} // render first 10 only
+					maxToRenderPerBatch={10} // batch size for lazy loading
+					windowSize={21} // number of items to keep mounted offscreen
+					removeClippedSubviews={true} // remove items out of view
+					contentContainerStyle={{
+						paddingHorizontal: 24,
+						paddingBottom: 40,
+						paddingTop: 12,
+					}}
+					showsVerticalScrollIndicator={false}
+				/>
+			)}
 		</SafeAreaView>
 	);
 }
