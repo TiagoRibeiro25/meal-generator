@@ -59,7 +59,6 @@ export function FilterScreen({ navigation }: Props) {
 		loadMeals();
 	}, [selectedCategory]);
 
-	// Handle meal press
 	async function handleMealPress(id: string) {
 		try {
 			const meal = await fetchMealById(id);
