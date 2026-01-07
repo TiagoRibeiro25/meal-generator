@@ -20,11 +20,7 @@ export function StackNavigator() {
 			<Stack.Screen name="Home" component={HomeScreen} />
 			<Stack.Screen name="Meal" component={MealScreen} />
 			<Stack.Screen name="Filters" component={FilterScreen} />
-			<Stack.Screen
-				name="Search"
-				component={SearchScreen}
-				options={{ headerShown: false }}
-			/>
+			<Stack.Screen name="Search" component={SearchScreen} />
 		</Stack.Navigator>
 	);
 }
