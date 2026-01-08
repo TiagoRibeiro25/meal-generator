@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Linking, Pressable, ScrollView, Share, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BackButton } from "../components/BackButton";
 import { IngredientsList } from "../components/IngredientsList";
@@ -12,6 +12,7 @@ import {
 } from "../services/favouritesService";
 import { addRecentMeal } from "../services/recentService";
 import { Meal } from "../types/Meal";
+import { shareMeal } from "../utils/share";
 
 type Props = {
 	route: { params: { meal: Meal } };
@@ -50,6 +51,10 @@ export function MealScreen({ route }: Props) {
 		}
 	}, [isFav, meal]);
 
+	const handleShare = useCallback(async () => {
+		await shareMeal(meal);
+	}, [meal]);
+
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
 			<ScrollView className="px-6 pt-6" contentContainerStyle={{ paddingBottom: 40 }}>
@@ -79,6 +84,13 @@ export function MealScreen({ route }: Props) {
 					<Text className="font-bold text-center text-white">
 						{isFav ? "❤️ Remove from Favourites" : "🤍 Add to Favourites"}
 					</Text>
+				</Pressable>
+
+				<Pressable
+					onPress={handleShare}
+					className="px-4 py-3 mt-3 rounded-xl bg-zinc-800"
+				>
+					<Text className="font-bold text-center text-white">📤 Share Recipe</Text>
 				</Pressable>
 
 				<IngredientsList ingredients={meal.ingredients} />
