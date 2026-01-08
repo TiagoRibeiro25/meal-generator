@@ -1,42 +1,22 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MealCard } from "../components/MealCard";
 import { MealCardSkeleton } from "../components/MealCardSkeleton";
+import { useFavourites } from "../hooks/useFavourites";
 import { RootStackParamList } from "../navigation/StackNavigator";
-import { getFavourites } from "../services/favouritesService";
 import { Meal } from "../types/Meal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Favourites">;
 
 export function FavouritesScreen({ navigation }: Props) {
-	const [favourites, setFavourites] = useState<Meal[]>([]);
-	const [loading, setLoading] = useState(true);
-
-	const loadFavourites = useCallback(async () => {
-		setLoading(true);
-		try {
-			const meals = await getFavourites();
-			setFavourites(meals);
-		} catch (e) {
-			console.error(e);
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+	const { favourites, loading, reload } = useFavourites();
 
 	useEffect(() => {
-		loadFavourites();
-	}, [loadFavourites]);
-
-	useEffect(() => {
-		const unsubscribe = navigation.addListener("focus", () => {
-			loadFavourites();
-		});
-
+		const unsubscribe = navigation.addListener("focus", reload);
 		return unsubscribe;
-	}, [navigation, loadFavourites]);
+	}, [navigation, reload]);
 
 	const renderItem = useCallback(
 		({ item }: { item: Meal }) => (

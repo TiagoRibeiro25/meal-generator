@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CategoryFilter } from "../components/CategoryFilter";
@@ -9,67 +9,31 @@ import { MealCard } from "../components/MealCard";
 import { MealCardSkeleton } from "../components/MealCardSkeleton";
 import { NetworkError } from "../components/NetworkError";
 import { OfflineIndicator } from "../components/OfflineIndicator";
+import { useCategories } from "../hooks/useCategories";
+import { useMealsByCategory } from "../hooks/useMealsByCategory";
 import { useNetworkStatus } from "../hooks/useNetworkStatus";
 import { RootStackParamList } from "../navigation/StackNavigator";
-import {
-	fetchCategories,
-	fetchMealById,
-	fetchMealsByCategory,
-} from "../services/mealService";
+import { fetchMealById } from "../services/mealService";
 import { Meal } from "../types/Meal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Filters">;
 
 export function FilterScreen({ navigation }: Props) {
 	const isConnected = useNetworkStatus();
-	const [categories, setCategories] = useState<string[]>([]);
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-	const [meals, setMeals] = useState<Meal[]>([]);
-	const [loadingCategories, setLoadingCategories] = useState(true);
-	const [loadingMeals, setLoadingMeals] = useState(false);
-	const [categoryError, setCategoryError] = useState<string | null>(null);
 	const [mealError, setMealError] = useState<string | null>(null);
 
-	const loadCategories = useCallback(async () => {
-		setLoadingCategories(true);
-		setCategoryError(null);
-		try {
-			const cats = await fetchCategories();
-			setCategories(cats);
-		} catch (e: any) {
-			console.error(e);
-			setCategoryError(e.message || "Failed to load categories");
-		} finally {
-			setLoadingCategories(false);
-		}
-	}, []);
-
-	useEffect(() => {
-		loadCategories();
-	}, [loadCategories]);
-
-	useEffect(() => {
-		if (!selectedCategory) {
-			setMeals([]);
-			setMealError(null);
-			return;
-		}
-
-		async function loadMeals() {
-			setLoadingMeals(true);
-			setMealError(null);
-			try {
-				const fetchedMeals = await fetchMealsByCategory(selectedCategory!);
-				setMeals(fetchedMeals);
-			} catch (e: any) {
-				console.error(e);
-				setMealError(e.message || "Failed to load meals");
-			} finally {
-				setLoadingMeals(false);
-			}
-		}
-		loadMeals();
-	}, [selectedCategory]);
+	const {
+		categories,
+		loading: loadingCategories,
+		error: categoryError,
+		reload,
+	} = useCategories();
+	const {
+		meals,
+		loading: loadingMeals,
+		error: mealsError,
+	} = useMealsByCategory(selectedCategory);
 
 	const handleMealPress = useCallback(
 		async (id: string) => {
@@ -95,7 +59,7 @@ export function FilterScreen({ navigation }: Props) {
 		return (
 			<SafeAreaView className="flex-1 bg-zinc-950">
 				{isConnected === false && <OfflineIndicator />}
-				<NetworkError onRetry={loadCategories} message={categoryError} />
+				<NetworkError onRetry={reload} message={categoryError} />
 			</SafeAreaView>
 		);
 	}
@@ -127,7 +91,7 @@ export function FilterScreen({ navigation }: Props) {
 				)}
 			</View>
 
-			{mealError && <ErrorBanner message={mealError} />}
+			{(mealError || mealsError) && <ErrorBanner message={mealError || mealsError!} />}
 
 			{loadingMeals && (
 				<View className="px-6">
