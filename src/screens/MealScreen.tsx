@@ -10,6 +10,7 @@ import {
 	removeFavourite,
 	saveFavourite,
 } from "../services/favouritesService";
+import { addRecentMeal } from "../services/recentService";
 import { Meal } from "../types/Meal";
 
 type Props = {
@@ -25,6 +26,7 @@ export function MealScreen({ route }: Props) {
 		checkFavourite();
 		checkCache();
 		cacheMeal(meal);
+		addRecentMeal(meal.idMeal);
 	}, [meal.idMeal]);
 
 	const checkFavourite = useCallback(async () => {
