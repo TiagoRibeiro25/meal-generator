@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Image, Linking, Pressable, ScrollView, Share, Text, View } from "react-native";
+import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BackButton } from "../components/BackButton";
 import { IngredientsList } from "../components/IngredientsList";
@@ -86,12 +86,14 @@ export function MealScreen({ route }: Props) {
 					</Text>
 				</Pressable>
 
-				<Pressable
-					onPress={handleShare}
-					className="px-4 py-3 mt-3 rounded-xl bg-zinc-800"
-				>
-					<Text className="font-bold text-center text-white">📤 Share Recipe</Text>
-				</Pressable>
+				{meal.strSource && (
+					<Pressable
+						onPress={handleShare}
+						className="px-4 py-3 mt-3 rounded-xl bg-zinc-800"
+					>
+						<Text className="font-bold text-center text-white">📤 Share Recipe</Text>
+					</Pressable>
+				)}
 
 				<IngredientsList ingredients={meal.ingredients} />
 
