@@ -1,9 +1,11 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CategoryFilter } from "../components/CategoryFilter";
+import { CategoryFilterSkeleton } from "../components/CategoryFilterSkeleton";
 import { MealCard } from "../components/MealCard";
+import { MealCardSkeleton } from "../components/MealCardSkeleton";
 import { RootStackParamList } from "../navigation/StackNavigator";
 import {
 	fetchCategories,
@@ -92,7 +94,7 @@ export function FilterScreen({ navigation }: Props) {
 				)}
 
 				{loadingCategories ? (
-					<ActivityIndicator size="large" color="#34D399" className="my-4" />
+					<CategoryFilterSkeleton vertical={meals.length === 0} />
 				) : (
 					<CategoryFilter
 						categories={categories}
@@ -105,20 +107,22 @@ export function FilterScreen({ navigation }: Props) {
 
 			{/* Meals */}
 			{loadingMeals && (
-				<View className="items-center justify-center flex-1 mt-6">
-					<ActivityIndicator size="large" color="#34D399" />
+				<View className="px-6">
+					{[...Array(5)].map((_, i) => (
+						<MealCardSkeleton key={i} />
+					))}
 				</View>
 			)}
 
-			{meals.length > 0 && (
+			{meals.length > 0 && !loadingMeals && (
 				<FlatList
 					data={meals}
 					keyExtractor={(item) => item.idMeal}
 					renderItem={renderMealItem}
-					initialNumToRender={10} // render first 10 only
-					maxToRenderPerBatch={10} // batch size for lazy loading
-					windowSize={21} // number of items to keep mounted offscreen
-					removeClippedSubviews={true} // remove items out of view
+					initialNumToRender={10}
+					maxToRenderPerBatch={10}
+					windowSize={21}
+					removeClippedSubviews={true}
 					contentContainerStyle={{
 						paddingHorizontal: 24,
 						paddingBottom: 40,

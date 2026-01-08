@@ -1,7 +1,8 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, Text, TextInput, View } from "react-native";
+import { FlatList, Text, TextInput, View } from "react-native";
 import { MealCard } from "../components/MealCard";
+import { MealCardSkeleton } from "../components/MealCardSkeleton";
 import { RootStackParamList } from "../navigation/StackNavigator";
 import { fetchMealById, searchMealsByName } from "../services/mealService";
 import { Meal } from "../types/Meal";
@@ -61,7 +62,13 @@ export function SearchScreen({ navigation }: Props) {
 				returnKeyType="search"
 			/>
 
-			{loading && <ActivityIndicator size="large" color="#34D399" className="mt-4" />}
+			{loading && (
+				<View>
+					{[...Array(5)].map((_, i) => (
+						<MealCardSkeleton key={i} />
+					))}
+				</View>
+			)}
 
 			{!loading && searched && results.length === 0 && (
 				<Text className="mt-6 text-lg text-center text-zinc-400">
@@ -69,13 +76,15 @@ export function SearchScreen({ navigation }: Props) {
 				</Text>
 			)}
 
-			<FlatList
-				data={results}
-				keyExtractor={(item) => item.idMeal}
-				renderItem={renderItem}
-				contentContainerStyle={{ paddingBottom: 40 }}
-				showsVerticalScrollIndicator={false}
-			/>
+			{!loading && (
+				<FlatList
+					data={results}
+					keyExtractor={(item) => item.idMeal}
+					renderItem={renderItem}
+					contentContainerStyle={{ paddingBottom: 40 }}
+					showsVerticalScrollIndicator={false}
+				/>
+			)}
 		</View>
 	);
 }

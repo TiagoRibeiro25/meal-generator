@@ -8,9 +8,7 @@ export async function fetchCategories(): Promise<string[]> {
 }
 
 export async function fetchMealsByCategory(category: string): Promise<Meal[]> {
-	const res = await fetch(
-		`${API_BASE_URL}/filter.php?c=${category}`
-	);
+	const res = await fetch(`${API_BASE_URL}/filter.php?c=${category}`);
 	const data = await res.json();
 
 	return data.meals.map((m: any) => ({
@@ -54,9 +52,7 @@ export async function fetchMealById(id: string): Promise<Meal> {
 }
 
 export async function searchMealsByName(name: string): Promise<Meal[]> {
-	const res = await fetch(
-		`${API_BASE_URL}/search.php?s=${encodeURIComponent(name)}`
-	);
+	const res = await fetch(`${API_BASE_URL}/search.php?s=${encodeURIComponent(name)}`);
 	const data = await res.json();
 
 	if (!data.meals) return [];
