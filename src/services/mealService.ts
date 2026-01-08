@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "../config/api";
 import { Meal } from "../types/Meal";
+import { cacheMeal, getCachedMeal } from "./cacheService";
 
 export async function fetchCategories(): Promise<string[]> {
 	const res = await fetch(`${API_BASE_URL}/list.php?c=list`);
@@ -25,30 +26,44 @@ export async function fetchMealsByCategory(category: string): Promise<Meal[]> {
 }
 
 export async function fetchMealById(id: string): Promise<Meal> {
-	const res = await fetch(`${API_BASE_URL}/lookup.php?i=${id}`);
-	const data = await res.json();
-	const apiMeal = data.meals[0];
+	const cached = await getCachedMeal(id);
 
-	const ingredients = [];
-	for (let i = 1; i <= 20; i++) {
-		const ingredient = apiMeal[`strIngredient${i}`];
-		const measure = apiMeal[`strMeasure${i}`];
-		if (ingredient && ingredient.trim() !== "") {
-			ingredients.push({ ingredient, measure });
+	try {
+		const res = await fetch(`${API_BASE_URL}/lookup.php?i=${id}`);
+		const data = await res.json();
+		const apiMeal = data.meals[0];
+
+		const ingredients = [];
+		for (let i = 1; i <= 20; i++) {
+			const ingredient = apiMeal[`strIngredient${i}`];
+			const measure = apiMeal[`strMeasure${i}`];
+			if (ingredient && ingredient.trim() !== "") {
+				ingredients.push({ ingredient, measure });
+			}
 		}
-	}
 
-	return {
-		idMeal: apiMeal.idMeal,
-		strMeal: apiMeal.strMeal,
-		strCategory: apiMeal.strCategory,
-		strArea: apiMeal.strArea,
-		strInstructions: apiMeal.strInstructions,
-		strMealThumb: apiMeal.strMealThumb,
-		strYoutube: apiMeal.strYoutube,
-		strSource: apiMeal.strSource,
-		ingredients,
-	};
+		const meal: Meal = {
+			idMeal: apiMeal.idMeal,
+			strMeal: apiMeal.strMeal,
+			strCategory: apiMeal.strCategory,
+			strArea: apiMeal.strArea,
+			strInstructions: apiMeal.strInstructions,
+			strMealThumb: apiMeal.strMealThumb,
+			strYoutube: apiMeal.strYoutube,
+			strSource: apiMeal.strSource,
+			ingredients,
+		};
+
+		await cacheMeal(meal);
+
+		return meal;
+	} catch (error) {
+		if (cached) {
+			console.log("Using cached meal due to network error");
+			return cached;
+		}
+		throw error;
+	}
 }
 
 export async function searchMealsByName(name: string): Promise<Meal[]> {

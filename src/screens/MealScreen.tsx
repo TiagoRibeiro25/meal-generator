@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Image, Linking, Pressable, ScrollView, Text } from "react-native";
+import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BackButton } from "../components/BackButton";
 import { IngredientsList } from "../components/IngredientsList";
+import { OfflineBadge } from "../components/OfflineBadge";
+import { cacheMeal, isMealCached } from "../services/cacheService";
 import {
 	isFavourite,
 	removeFavourite,
@@ -17,14 +19,22 @@ type Props = {
 export function MealScreen({ route }: Props) {
 	const { meal } = route.params;
 	const [isFav, setIsFav] = useState(false);
+	const [isCached, setIsCached] = useState(false);
 
 	useEffect(() => {
 		checkFavourite();
+		checkCache();
+		cacheMeal(meal);
 	}, [meal.idMeal]);
 
 	const checkFavourite = useCallback(async () => {
 		const result = await isFavourite(meal.idMeal);
 		setIsFav(result);
+	}, [meal.idMeal]);
+
+	const checkCache = useCallback(async () => {
+		const cached = await isMealCached(meal.idMeal);
+		setIsCached(cached);
 	}, [meal.idMeal]);
 
 	const toggleFavourite = useCallback(async () => {
@@ -34,6 +44,7 @@ export function MealScreen({ route }: Props) {
 		} else {
 			await saveFavourite(meal);
 			setIsFav(true);
+			setIsCached(true);
 		}
 	}, [isFav, meal]);
 
@@ -49,9 +60,13 @@ export function MealScreen({ route }: Props) {
 				/>
 
 				<Text className="mt-4 text-3xl font-bold text-white">{meal.strMeal}</Text>
-				<Text className="mt-1 text-lg text-zinc-400">
-					{meal.strCategory} • {meal.strArea}
-				</Text>
+				<View className="flex-row items-center justify-between mt-1">
+					<Text className="text-lg text-zinc-400">
+						{meal.strCategory} • {meal.strArea}
+					</Text>
+				</View>
+
+				{isCached && <OfflineBadge className="mt-2" />}
 
 				<Pressable
 					onPress={toggleFavourite}
