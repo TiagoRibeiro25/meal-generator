@@ -86,7 +86,7 @@ export function MealScreen({ route }: Props) {
 					</Text>
 				</Pressable>
 
-				{meal.strSource && (
+				{(meal.strSource || meal.strYoutube) && (
 					<Pressable
 						onPress={handleShare}
 						className="px-4 py-3 mt-3 rounded-xl bg-zinc-800"

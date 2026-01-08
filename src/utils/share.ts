@@ -8,9 +8,7 @@ export async function shareMeal(meal: Meal): Promise<void> {
 			? `🍽️ ${meal.strMeal}\n\nCheck out this recipe:\n${link}`
 			: `🍽️ ${meal.strMeal}\n\nDelicious ${meal.strCategory} recipe from ${meal.strArea}`;
 
-		await Share.share({
-			message,
-		});
+		await Share.share({ message });
 	} catch (error) {
 		console.error("Error sharing meal:", error);
 	}
