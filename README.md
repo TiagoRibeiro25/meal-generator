@@ -7,11 +7,16 @@ A mobile app built with **React Native + Expo + TypeScript** that lets you disco
 ## Features
 
 - Generate a **random meal** with full details.
-- **Filter meals** by category (e.g., Vegan, Seafood, Meat).  
-- **Search meals** by name.  
-- View **ingredients, instructions, and YouTube videos** for each meal.  
-- Modern, responsive **UI with NativeWind (Tailwind CSS)**.  
-- Optimized for smooth scrolling with many meals.  
+- **Filter meals** by category (e.g., Seafood, Vegetarian, Meat).
+- **Search meals** by name.
+- Save meals to **favorites** (persisted locally).
+- View **recently viewed meals** for quick access.
+- **Offline support** for cached meals.
+- **Skeleton loaders** for a smooth loading experience.
+- View **ingredients, instructions, and YouTube videos**.
+- **Share meals** using the native share menu.
+- Modern, responsive **UI with NativeWind (Tailwind CSS)**.
+- Optimized performance for large meal lists.
 
 ---
 
