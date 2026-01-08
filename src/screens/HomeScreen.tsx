@@ -48,6 +48,10 @@ export function HomeScreen({ navigation }: Props) {
 				</View>
 
 				<RecentlyViewed />
+
+				<View className="items-center px-6 mt-8">
+					<Text className="text-sm text-zinc-500">Made by Tiago Ribeiro</Text>
+				</View>
 			</ScrollView>
 		</SafeAreaView>
 	);
