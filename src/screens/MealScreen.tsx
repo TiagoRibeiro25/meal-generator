@@ -56,7 +56,7 @@ export function MealScreen({ route }: Props) {
 				<Pressable
 					onPress={toggleFavourite}
 					className={`px-4 py-3 mt-4 rounded-xl ${
-						isFav ? "bg-red-500" : "bg-emerald-500"
+						isFav ? "bg-red-400" : "bg-emerald-500"
 					}`}
 				>
 					<Text className="font-bold text-center text-white">
