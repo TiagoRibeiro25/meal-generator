@@ -1,22 +1,18 @@
-import { API_BASE_URL } from "../config/api";
+import { API_BASE_URL } from "../config/constants";
+import { ApiMealDetail, ApiMealSummary, ApiResponse } from "../types/api";
+import { NetworkError } from "../types/errors";
 import { Meal } from "../types/Meal";
 import { cacheMeal, getCachedMeal } from "./cacheService";
 
-class NetworkError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = "NetworkError";
-	}
-}
-
-export async function fetchCategories(): Promise<string[]> {
+async function fetchApi<T>(endpoint: string): Promise<T> {
 	try {
-		const res = await fetch(`${API_BASE_URL}/list.php?c=list`);
-		if (!res.ok) {
-			throw new NetworkError("Failed to fetch categories");
+		const response = await fetch(`${API_BASE_URL}${endpoint}`);
+
+		if (!response.ok) {
+			throw new NetworkError(`API Error: ${response.status} ${response.statusText}`);
 		}
-		const data = await res.json();
-		return data.meals.map((c: any) => c.strCategory);
+
+		return await response.json();
 	} catch (error) {
 		if (error instanceof TypeError) {
 			throw new NetworkError("No internet connection");
@@ -25,15 +21,50 @@ export async function fetchCategories(): Promise<string[]> {
 	}
 }
 
-export async function fetchMealsByCategory(category: string): Promise<Meal[]> {
-	try {
-		const res = await fetch(`${API_BASE_URL}/filter.php?c=${category}`);
-		if (!res.ok) {
-			throw new NetworkError("Failed to fetch meals");
-		}
-		const data = await res.json();
+function parseIngredients(
+	meal: ApiMealDetail
+): { ingredient: string; measure: string }[] {
+	const ingredients: { ingredient: string; measure: string }[] = [];
 
-		return data.meals.map((m: any) => ({
+	for (let i = 1; i <= 20; i++) {
+		const ingredient = meal[`strIngredient${i}` as keyof ApiMealDetail];
+		const measure = meal[`strMeasure${i}` as keyof ApiMealDetail];
+
+		if (ingredient && typeof ingredient === "string" && ingredient.trim() !== "") {
+			ingredients.push({
+				ingredient,
+				measure: typeof measure === "string" ? measure : "",
+			});
+		}
+	}
+
+	return ingredients;
+}
+
+function transformMealDetail(apiMeal: ApiMealDetail): Meal {
+	return {
+		idMeal: apiMeal.idMeal,
+		strMeal: apiMeal.strMeal,
+		strCategory: apiMeal.strCategory,
+		strArea: apiMeal.strArea,
+		strInstructions: apiMeal.strInstructions,
+		strMealThumb: apiMeal.strMealThumb,
+		strYoutube: apiMeal.strYoutube,
+		strSource: apiMeal.strSource,
+		ingredients: parseIngredients(apiMeal),
+	};
+}
+
+export async function fetchCategories(): Promise<string[]> {
+	const data = await fetchApi<ApiResponse<{ strCategory: string }>>("/list.php?c=list");
+	return data.meals?.map((c) => c.strCategory) || [];
+}
+
+export async function fetchMealsByCategory(category: string): Promise<Meal[]> {
+	const data = await fetchApi<ApiResponse<ApiMealSummary>>(`/filter.php?c=${category}`);
+
+	return (
+		data.meals?.map((m) => ({
 			idMeal: m.idMeal,
 			strMeal: m.strMeal,
 			strCategory: category,
@@ -43,47 +74,21 @@ export async function fetchMealsByCategory(category: string): Promise<Meal[]> {
 			strYoutube: "",
 			strSource: "",
 			ingredients: [],
-		}));
-	} catch (error) {
-		if (error instanceof TypeError) {
-			throw new NetworkError("No internet connection");
-		}
-		throw error;
-	}
+		})) || []
+	);
 }
 
 export async function fetchMealById(id: string): Promise<Meal> {
 	const cached = await getCachedMeal(id);
 
 	try {
-		const res = await fetch(`${API_BASE_URL}/lookup.php?i=${id}`);
-		if (!res.ok) {
-			throw new NetworkError("Failed to fetch meal details");
-		}
-		const data = await res.json();
-		const apiMeal = data.meals[0];
+		const data = await fetchApi<ApiResponse<ApiMealDetail>>(`/lookup.php?i=${id}`);
 
-		const ingredients = [];
-		for (let i = 1; i <= 20; i++) {
-			const ingredient = apiMeal[`strIngredient${i}`];
-			const measure = apiMeal[`strMeasure${i}`];
-			if (ingredient && ingredient.trim() !== "") {
-				ingredients.push({ ingredient, measure });
-			}
+		if (!data.meals || data.meals.length === 0) {
+			throw new NetworkError("Meal not found");
 		}
 
-		const meal: Meal = {
-			idMeal: apiMeal.idMeal,
-			strMeal: apiMeal.strMeal,
-			strCategory: apiMeal.strCategory,
-			strArea: apiMeal.strArea,
-			strInstructions: apiMeal.strInstructions,
-			strMealThumb: apiMeal.strMealThumb,
-			strYoutube: apiMeal.strYoutube,
-			strSource: apiMeal.strSource,
-			ingredients,
-		};
-
+		const meal = transformMealDetail(data.meals[0]);
 		await cacheMeal(meal);
 
 		return meal;
@@ -92,49 +97,14 @@ export async function fetchMealById(id: string): Promise<Meal> {
 			console.log("Using cached meal due to network error");
 			return cached;
 		}
-		if (error instanceof TypeError) {
-			throw new NetworkError("No internet connection");
-		}
 		throw error;
 	}
 }
 
 export async function searchMealsByName(name: string): Promise<Meal[]> {
-	try {
-		const res = await fetch(`${API_BASE_URL}/search.php?s=${encodeURIComponent(name)}`);
-		if (!res.ok) {
-			throw new NetworkError("Failed to search meals");
-		}
-		const data = await res.json();
+	const data = await fetchApi<ApiResponse<ApiMealDetail>>(
+		`/search.php?s=${encodeURIComponent(name)}`
+	);
 
-		if (!data.meals) return [];
-
-		return data.meals.map((m: any) => {
-			const ingredients = [];
-			for (let i = 1; i <= 20; i++) {
-				const ingredient = m[`strIngredient${i}`];
-				const measure = m[`strMeasure${i}`];
-				if (ingredient && ingredient.trim() !== "") {
-					ingredients.push({ ingredient, measure });
-				}
-			}
-
-			return {
-				idMeal: m.idMeal,
-				strMeal: m.strMeal,
-				strCategory: m.strCategory,
-				strArea: m.strArea,
-				strInstructions: m.strInstructions,
-				strMealThumb: m.strMealThumb,
-				strYoutube: m.strYoutube,
-				strSource: m.strSource,
-				ingredients,
-			};
-		});
-	} catch (error) {
-		if (error instanceof TypeError) {
-			throw new NetworkError("No internet connection");
-		}
-		throw error;
-	}
+	return data.meals?.map(transformMealDetail) || [];
 }

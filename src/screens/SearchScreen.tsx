@@ -5,6 +5,7 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { MealCard } from "../components/MealCard";
 import { MealCardSkeleton } from "../components/MealCardSkeleton";
 import { OfflineIndicator } from "../components/OfflineIndicator";
+import { useLoadingState } from "../hooks/useLoadingState";
 import { useNetworkStatus } from "../hooks/useNetworkStatus";
 import { RootStackParamList } from "../navigation/StackNavigator";
 import { fetchMealById, searchMealsByName } from "../services/mealService";
@@ -16,44 +17,38 @@ export function SearchScreen({ navigation }: Props) {
 	const isConnected = useNetworkStatus();
 	const [query, setQuery] = useState("");
 	const [results, setResults] = useState<Meal[]>([]);
-	const [loading, setLoading] = useState(false);
 	const [searched, setSearched] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	const { loading, error, execute, setError } = useLoadingState();
 
 	const handleSearch = useCallback(async () => {
 		if (!query.trim()) return;
 
-		setLoading(true);
 		setSearched(true);
-		setError(null);
+		const meals = await execute(() => searchMealsByName(query), "Failed to search meals");
 
-		try {
-			const meals = await searchMealsByName(query);
+		if (meals) {
 			setResults(meals);
-		} catch (e: any) {
-			console.error(e);
-			setError(e.message || "Failed to search meals");
+		} else {
 			setResults([]);
-		} finally {
-			setLoading(false);
 		}
-	}, [query]);
+	}, [query, execute]);
+
+	const handleMealPress = useCallback(
+		async (id: string) => {
+			const meal = await execute(() => fetchMealById(id), "Failed to load meal details");
+
+			if (meal) {
+				navigation.navigate("Meal", { meal });
+			}
+		},
+		[navigation, execute]
+	);
 
 	const renderItem = useCallback(
 		({ item }: { item: Meal }) => (
-			<MealCard
-				meal={item}
-				onPress={async () => {
-					try {
-						const fullMeal = await fetchMealById(item.idMeal);
-						navigation.navigate("Meal", { meal: fullMeal });
-					} catch (e: any) {
-						setError(e.message || "Failed to load meal details");
-					}
-				}}
-			/>
+			<MealCard meal={item} onPress={() => handleMealPress(item.idMeal)} />
 		),
-		[navigation]
+		[handleMealPress]
 	);
 
 	return (

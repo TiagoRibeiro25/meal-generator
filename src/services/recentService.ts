@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { MAX_RECENT, RECENT_KEY } from "../config/recentMeals";
+import { MAX_RECENT, RECENT_KEY } from "../config/constants";
 
 export async function addRecentMeal(mealId: string): Promise<void> {
 	try {
