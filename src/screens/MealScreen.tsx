@@ -1,16 +1,18 @@
+import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
-import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BackButton } from "../components/BackButton";
 import { IngredientsList } from "../components/IngredientsList";
 import { OfflineBadge } from "../components/OfflineBadge";
 import { cacheMeal, isMealCached } from "../services/cacheService";
+import { removeCustomMeal } from "../services/customMealsService";
 import {
 	isFavourite,
 	removeFavourite,
 	saveFavourite,
 } from "../services/favouritesService";
-import { addRecentMeal } from "../services/recentService";
+import { addRecentMeal, removeRecentMeal } from "../services/recentService";
 import { Meal } from "../types/Meal";
 import { shareMeal } from "../utils/share";
 
@@ -20,6 +22,7 @@ type Props = {
 
 export function MealScreen({ route }: Props) {
 	const { meal } = route.params;
+	const navigation = useNavigation();
 	const [isFav, setIsFav] = useState(false);
 	const [isCached, setIsCached] = useState(false);
 
@@ -54,6 +57,28 @@ export function MealScreen({ route }: Props) {
 	const handleShare = useCallback(async () => {
 		await shareMeal(meal);
 	}, [meal]);
+
+	const handleDelete = useCallback(() => {
+		Alert.alert("Delete meal", "Are you sure you want to delete this custom meal?", [
+			{ text: "Cancel", style: "cancel" },
+			{
+				text: "Delete",
+				style: "destructive",
+				onPress: async () => {
+					try {
+						await removeCustomMeal(meal.idMeal);
+							await removeRecentMeal(meal.idMeal);
+						// go back after deletion
+						// @ts-ignore
+						navigation.goBack();
+					} catch (e) {
+						console.error("Failed to delete custom meal", e);
+						Alert.alert("Error", "Failed to delete meal");
+					}
+				},
+			},
+		]);
+	}, [meal.idMeal, navigation]);
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
@@ -111,6 +136,16 @@ export function MealScreen({ route }: Props) {
 						>
 							<Text className="mr-2 text-xl">📤</Text>
 							<Text className="text-lg font-bold text-white">Share Recipe</Text>
+						</Pressable>
+					)}
+
+					{meal.isLocal && (
+						<Pressable
+							onPress={handleDelete}
+							className="flex-row items-center justify-center px-6 py-4 bg-red-600 rounded-2xl active:scale-[0.98]"
+						>
+							<Text className="mr-2 text-xl">🗑️</Text>
+							<Text className="text-lg font-bold text-white">Delete Meal</Text>
 						</Pressable>
 					)}
 				</View>

@@ -55,6 +55,20 @@ export function HomeScreen({ navigation }: Props) {
 							onPress={() => navigation.navigate("Favourites")}
 							variant="secondary"
 						/>
+
+						<PrimaryButton
+							title="My Meals"
+							icon="📚"
+							onPress={() => navigation.navigate("MyMeals")}
+							variant="secondary"
+						/>
+
+						<PrimaryButton
+							title="Add Custom Meal"
+							icon="➕"
+							onPress={() => navigation.navigate("AddMeal")}
+							variant="secondary"
+						/>
 					</View>
 				</View>
 

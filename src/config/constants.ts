@@ -15,3 +15,5 @@ export const FAVOURITES_KEY = "@meal_favourites";
 
 export const CACHE_PREFIX = "@meal_cache_";
 export const CACHE_INDEX_KEY = "@meal_cache_index";
+
+export const CUSTOM_MEALS_KEY = "@custom_meals";

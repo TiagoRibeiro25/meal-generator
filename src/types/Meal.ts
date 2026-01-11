@@ -8,4 +8,5 @@ export type Meal = {
   strYoutube: string;
   strSource: string;
   ingredients: { ingredient: string; measure: string }[];
+  isLocal?: boolean;
 };

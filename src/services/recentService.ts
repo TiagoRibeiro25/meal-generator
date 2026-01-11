@@ -34,3 +34,13 @@ export async function clearRecentMeals(): Promise<void> {
 		console.error("Error clearing recent meals:", e);
 	}
 }
+
+export async function removeRecentMeal(mealId: string): Promise<void> {
+	try {
+		const recent = await getRecentMealIds();
+		const updated = recent.filter((id) => id !== mealId);
+		await AsyncStorage.setItem(RECENT_KEY, JSON.stringify(updated));
+	} catch (e) {
+		console.error("Error removing recent meal:", e);
+	}
+}
