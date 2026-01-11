@@ -2,18 +2,8 @@ import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BackButton } from "../components/BackButton";
-import { FullscreenImageViewer } from "../components/FullscreenImageViewer";
-import { IngredientsList } from "../components/IngredientsList";
-import { OfflineBadge } from "../components/OfflineBadge";
-import { cacheMeal, isMealCached } from "../services/cacheService";
-import { removeCustomMeal } from "../services/customMealsService";
-import {
-	isFavourite,
-	removeFavourite,
-	saveFavourite,
-} from "../services/favouritesService";
-import { addRecentMeal, removeRecentMeal } from "../services/recentService";
+import { BackButton, FullscreenImageViewer, IngredientsList, OfflineBadge } from "../components";
+import { addRecentMeal, cacheMeal, isFavourite, isMealCached, removeCustomMeal, removeFavourite, removeRecentMeal, saveFavourite } from "../services";
 import { Meal } from "../types/Meal";
 import { shareMeal } from "../utils/share";
 

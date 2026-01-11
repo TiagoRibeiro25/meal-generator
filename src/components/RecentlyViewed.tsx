@@ -3,8 +3,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCallback, useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { RootStackParamList } from "../navigation/StackNavigator";
-import { getCachedMeal } from "../services/cacheService";
-import { getRecentMealIds } from "../services/recentService";
+import { getCachedMeal, getRecentMealIds } from "../services";
 import { Meal } from "../types/Meal";
 import { SkeletonLoader } from "./SkeletonLoader";
 

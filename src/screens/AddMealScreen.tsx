@@ -1,13 +1,10 @@
 import { useNavigation, useRoute } from "@react-navigation/native";
-import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AddIngredientInput } from "../components/AddIngredientInput";
-import { PrimaryButton } from "../components/PrimaryButton";
-import { cacheMeal } from "../services/cacheService";
-import { saveCustomMeal } from "../services/customMealsService";
+import { AddIngredientInput, PrimaryButton } from "../components";
+import { cacheMeal, persistImage, saveCustomMeal } from "../services";
 import { Meal } from "../types/Meal";
 
 export function AddMealScreen() {
@@ -93,25 +90,8 @@ export function AddMealScreen() {
 
 		const id = editingMeal ? editingMeal.idMeal : `local-${Date.now()}`;
 
-		// Persist picked image into app storage so it survives edits/backups
-		let finalThumb = thumb;
-		try {
-			const doc = FileSystem.documentDirectory || "";
-			if (thumb && thumb.startsWith("file://") && !thumb.startsWith(doc)) {
-				const dir = `${doc}meal_images/`;
-				try {
-					await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
-				} catch (e) {
-					// ignore mkdir error
-				}
-				const ext = thumb.split(".").pop()?.split("?")[0] || "jpg";
-				const dest = `${dir}${id}.${ext}`;
-				await FileSystem.copyAsync({ from: thumb, to: dest });
-				finalThumb = dest;
-			}
-		} catch (e) {
-			console.error("Failed to persist image:", e);
-		}
+    // Persist picked image into app storage (delegated to imageService)
+    const finalThumb = await persistImage(thumb, id);
 
 		const meal: Meal = {
 			idMeal: id,

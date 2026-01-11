@@ -1,10 +1,8 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { OfflineIndicator } from "../components/OfflineIndicator";
-import { PrimaryButton } from "../components/PrimaryButton";
-import { RecentlyViewed } from "../components/RecentlyViewed";
-import { useNetworkStatus } from "../hooks/useNetworkStatus";
+import { OfflineIndicator, PrimaryButton, RecentlyViewed } from "../components";
+import { useNetworkStatus } from "../hooks";
 import { RootStackParamList } from "../navigation/StackNavigator";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;

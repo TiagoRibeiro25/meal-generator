@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as FileSystem from "expo-file-system/legacy";
 import { CUSTOM_MEALS_KEY } from "../config/constants";
 import { Meal } from "../types/Meal";
+import { deleteLocalImageIfExists } from "./imageService";
 
 export async function getCustomMeals(): Promise<Meal[]> {
   try {
@@ -21,17 +21,8 @@ export async function saveCustomMeal(meal: Meal): Promise<void> {
 
     // If updating an existing meal and it had a stored image that changed, delete the old file
     const previous = current.find((m) => m.idMeal === id);
-    const _doc = FileSystem.documentDirectory || "";
-    if (
-      previous?.strMealThumb &&
-      previous.strMealThumb !== toSave.strMealThumb &&
-      previous.strMealThumb.startsWith(_doc)
-    ) {
-      try {
-        await FileSystem.deleteAsync(previous.strMealThumb, { idempotent: true });
-      } catch (e) {
-        console.error("Failed to delete previous meal image:", e);
-      }
+    if (previous?.strMealThumb && previous.strMealThumb !== toSave.strMealThumb) {
+      await deleteLocalImageIfExists(previous.strMealThumb);
     }
 
     const updated = [toSave, ...current.filter((m) => m.idMeal !== id)];
@@ -47,13 +38,8 @@ export async function removeCustomMeal(mealId: string): Promise<void> {
     const found = current.find((m) => m.idMeal === mealId);
 
     // delete stored image if it exists in app storage
-    const _doc2 = FileSystem.documentDirectory || "";
-    if (found?.strMealThumb && found.strMealThumb.startsWith(_doc2)) {
-      try {
-        await FileSystem.deleteAsync(found.strMealThumb, { idempotent: true });
-      } catch (e) {
-        console.error("Failed to delete meal image on remove:", e);
-      }
+    if (found?.strMealThumb) {
+      await deleteLocalImageIfExists(found.strMealThumb);
     }
 
     const updated = current.filter((m) => m.idMeal !== mealId);

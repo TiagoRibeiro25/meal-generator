@@ -2,9 +2,8 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useEffect } from "react";
 import { FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MealCard } from "../components/MealCard";
-import { MealCardSkeleton } from "../components/MealCardSkeleton";
-import { useFavourites } from "../hooks/useFavourites";
+import { MealCard, MealCardSkeleton } from "../components";
+import { useFavourites } from "../hooks";
 import { RootStackParamList } from "../navigation/StackNavigator";
 import { Meal } from "../types/Meal";
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
-import { isMealCached } from "../services/cacheService";
+import { isMealCached } from "../services";
 import { Meal } from "../types/Meal";
 import { OfflineBadge } from "./OfflineBadge";
 

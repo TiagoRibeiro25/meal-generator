@@ -2,14 +2,10 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useState } from "react";
 import { FlatList, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ErrorBanner } from "../components/ErrorBanner";
-import { MealCard } from "../components/MealCard";
-import { MealCardSkeleton } from "../components/MealCardSkeleton";
-import { OfflineIndicator } from "../components/OfflineIndicator";
-import { useLoadingState } from "../hooks/useLoadingState";
-import { useNetworkStatus } from "../hooks/useNetworkStatus";
+import { ErrorBanner, MealCard, MealCardSkeleton, OfflineIndicator } from "../components";
+import { useLoadingState, useNetworkStatus } from "../hooks";
 import { RootStackParamList } from "../navigation/StackNavigator";
-import { fetchMealById, searchMealsByName } from "../services/mealService";
+import { fetchMealById, searchMealsByName } from "../services";
 import { Meal } from "../types/Meal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Search">;

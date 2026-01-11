@@ -2,10 +2,8 @@ import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BackButton } from "../components/BackButton";
-import { MealCard } from "../components/MealCard";
-import { getCustomMeals, removeCustomMeal } from "../services/customMealsService";
-import { removeRecentMeal } from "../services/recentService";
+import { BackButton, MealCard } from "../components";
+import { getCustomMeals, removeCustomMeal, removeRecentMeal } from "../services";
 import { Meal } from "../types/Meal";
 
 export function MyMealsScreen() {
