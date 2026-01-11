@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert, Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BackButton } from "../components/BackButton";
+import { FullscreenImageViewer } from "../components/FullscreenImageViewer";
 import { IngredientsList } from "../components/IngredientsList";
 import { OfflineBadge } from "../components/OfflineBadge";
 import { cacheMeal, isMealCached } from "../services/cacheService";
@@ -25,6 +26,7 @@ export function MealScreen({ route }: Props) {
 	const navigation = useNavigation();
 	const [isFav, setIsFav] = useState(false);
 	const [isCached, setIsCached] = useState(false);
+	const [viewerVisible, setViewerVisible] = useState(false);
 
 	useEffect(() => {
 		checkFavourite();
@@ -67,7 +69,7 @@ export function MealScreen({ route }: Props) {
 				onPress: async () => {
 					try {
 						await removeCustomMeal(meal.idMeal);
-							await removeRecentMeal(meal.idMeal);
+						await removeRecentMeal(meal.idMeal);
 						// go back after deletion
 						// @ts-ignore
 						navigation.goBack();
@@ -87,13 +89,21 @@ export function MealScreen({ route }: Props) {
 
 				{/* Hero Image */}
 				<View className="relative mb-6 overflow-hidden shadow-2xl rounded-3xl">
-					<Image
-						source={{ uri: meal.strMealThumb }}
-						className="w-full h-80"
-						resizeMode="cover"
-					/>
-					<View className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent" />
+					<Pressable onPress={() => setViewerVisible(true)}>
+						<Image
+							source={{ uri: meal.strMealThumb }}
+							className="w-full h-80"
+							resizeMode="cover"
+						/>
+						<View className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent" />
+					</Pressable>
 				</View>
+
+				<FullscreenImageViewer
+					visible={viewerVisible}
+					uri={meal.strMealThumb}
+					onClose={() => setViewerVisible(false)}
+				/>
 
 				{/* Title Section */}
 				<View className="mb-6">
@@ -143,10 +153,9 @@ export function MealScreen({ route }: Props) {
 						<View className="flex-row gap-3">
 							<Pressable
 								onPress={() => {
-								// @ts-ignore
-								navigation.navigate("AddMeal", { meal });
-								}
-							}
+									// @ts-ignore
+									navigation.navigate("AddMeal", { meal });
+								}}
 								className="flex-row items-center justify-center px-6 py-4 bg-emerald-600 rounded-2xl active:scale-[0.98]"
 							>
 								<Text className="mr-2 text-xl">✏️</Text>

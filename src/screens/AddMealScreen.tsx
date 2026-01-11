@@ -157,7 +157,11 @@ export function AddMealScreen() {
 		setThumb(editingMeal.strMealThumb || "");
 		setYoutube(editingMeal.strYoutube || "");
 		setSource(editingMeal.strSource || "");
-		setIngredients(editingMeal.ingredients?.length ? editingMeal.ingredients : [{ ingredient: "", measure: "" }]);
+		setIngredients(
+			editingMeal.ingredients?.length
+				? editingMeal.ingredients
+				: [{ ingredient: "", measure: "" }]
+		);
 	}, [editingMeal]);
 
 	return (
@@ -193,7 +197,11 @@ export function AddMealScreen() {
 
 				<View className="mb-3">
 					{thumb ? (
-						<Image source={{ uri: thumb }} className="w-full h-48 mb-3 rounded" resizeMode="cover" />
+						<Image
+							source={{ uri: thumb }}
+							className="w-full h-48 mb-3 rounded"
+							resizeMode="cover"
+						/>
 					) : (
 						<View className="items-center justify-center w-full h-48 mb-3 rounded bg-zinc-800">
 							<Text className="text-zinc-500">No image selected</Text>
@@ -252,7 +260,10 @@ export function AddMealScreen() {
 					className="h-40 px-4 py-3 mb-6 rounded bg-zinc-800 text-zinc-200"
 				/>
 
-				<PrimaryButton title={editingMeal ? "Update Meal" : "Save Meal"} onPress={handleSave} />
+				<PrimaryButton
+					title={editingMeal ? "Update Meal" : "Save Meal"}
+					onPress={handleSave}
+				/>
 				<View className="h-3" />
 				<PrimaryButton
 					title="Cancel"
