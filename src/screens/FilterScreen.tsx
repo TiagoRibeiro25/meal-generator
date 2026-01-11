@@ -68,12 +68,15 @@ export function FilterScreen({ navigation }: Props) {
 		<SafeAreaView className="flex-1 bg-zinc-950">
 			{isConnected === false && <OfflineIndicator />}
 
-			<View className="px-6 pt-6">
-				<Text className="mb-2 text-3xl font-bold text-white">Filter Meals</Text>
+			<View className="px-6 pt-8">
+				<View className="mb-6">
+					<Text className="mb-2 text-4xl font-black text-white">Browse by</Text>
+					<Text className="text-4xl font-black text-emerald-400">Category</Text>
+				</View>
 
 				{!loadingCategories && meals.length === 0 && (
-					<Text className="mb-4 text-lg text-zinc-400">
-						Select a category to see meals.
+					<Text className="mb-4 text-base text-zinc-500">
+						Select a category to discover delicious meals
 					</Text>
 				)}
 

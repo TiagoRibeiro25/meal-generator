@@ -21,36 +21,48 @@ export function HomeScreen({ navigation }: Props) {
 				contentContainerStyle={{ paddingBottom: 40 }}
 				showsVerticalScrollIndicator={false}
 			>
-				<View className="px-6 pt-6">
-					<Text className="text-4xl font-extrabold text-white">🍽️ Random Meal</Text>
+				<View className="px-6 pt-8">
+					{/* Hero Section */}
+					<View className="mb-8">
+						<Text className="mb-2 text-5xl font-black text-white">🍽️</Text>
+						<Text className="mb-3 text-4xl font-black text-white">Discover Your</Text>
+						<Text className="mb-4 text-4xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 text-emerald-400">
+							Next Meal
+						</Text>
+						<Text className="text-base leading-6 text-zinc-400">
+							Explore thousands of delicious recipes from around the world. Find your next
+							favorite dish.
+						</Text>
+					</View>
 
-					<Text className="mt-3 text-lg leading-6 text-zinc-400">
-						Feeling hungry but out of ideas? Tap the button below and discover a random
-						delicious meal.
-					</Text>
-
-					<View className="gap-5 mt-10">
+					{/* Action Cards */}
+					<View className="gap-4 mb-8">
 						<PrimaryButton
-							title="Browse by Category"
+							title="Browse Categories"
+							icon="🔍"
 							onPress={() => navigation.navigate("Filters")}
 						/>
 
 						<PrimaryButton
-							title="Search a Meal"
+							title="Search Recipes"
+							icon="🔎"
 							onPress={() => navigation.navigate("Search")}
 						/>
 
 						<PrimaryButton
 							title="My Favourites"
+							icon="❤️"
 							onPress={() => navigation.navigate("Favourites")}
+							variant="secondary"
 						/>
 					</View>
 				</View>
 
 				<RecentlyViewed />
 
-				<View className="items-center px-6 mt-8">
-					<Text className="text-sm text-zinc-500">Made by Tiago Ribeiro</Text>
+				{/* Footer */}
+				<View className="items-center px-6 mt-12">
+					<Text className="text-sm text-zinc-600">Made with ❤️ by Tiago Ribeiro</Text>
 				</View>
 			</ScrollView>
 		</SafeAreaView>

@@ -23,19 +23,41 @@ export function MealCard({ meal, onPress }: Props) {
 	return (
 		<Pressable
 			onPress={onPress}
-			className="mb-4 overflow-hidden shadow-lg bg-zinc-900 rounded-2xl"
+			className="mb-4 overflow-hidden shadow-2xl bg-zinc-900 rounded-3xl active:scale-[0.98]"
 		>
-			<Image
-				source={{ uri: meal.strMealThumb }}
-				className="w-full h-40"
-				resizeMode="cover"
-			/>
-			<View className="p-4">
-				<View className="flex-row items-start justify-between mb-2">
-					<Text className="flex-1 text-lg font-bold text-white">{meal.strMeal}</Text>
+			<View className="relative">
+				<Image
+					source={{ uri: meal.strMealThumb }}
+					className="w-full h-48"
+					resizeMode="cover"
+				/>
+				{/* Gradient Overlay */}
+				<View className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-zinc-900 to-transparent" />
+			</View>
+
+			<View className="p-5">
+				<Text className="mb-2 text-xl font-bold text-white" numberOfLines={2}>
+					{meal.strMeal}
+				</Text>
+
+				<View className="flex-row items-center justify-between">
+					<View className="flex-row items-center gap-2">
+						<View className="px-3 py-1 rounded-full bg-zinc-800">
+							<Text className="text-sm font-semibold text-emerald-400">
+								{meal.strCategory}
+							</Text>
+						</View>
+						{meal.strArea && (
+							<View className="px-3 py-1 rounded-full bg-zinc-800">
+								<Text className="text-sm font-semibold text-cyan-400">
+									{meal.strArea}
+								</Text>
+							</View>
+						)}
+					</View>
 				</View>
-				<Text className="mb-2 text-zinc-400">{meal.strCategory}</Text>
-				{isCached && <OfflineBadge />}
+
+				{isCached && <OfflineBadge className="mt-3" />}
 			</View>
 		</Pressable>
 	);

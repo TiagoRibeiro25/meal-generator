@@ -1,6 +1,7 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useState } from "react";
 import { FlatList, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { MealCard } from "../components/MealCard";
 import { MealCardSkeleton } from "../components/MealCardSkeleton";
@@ -52,7 +53,7 @@ export function SearchScreen({ navigation }: Props) {
 	);
 
 	return (
-		<View className="flex-1 bg-zinc-950">
+		<SafeAreaView className="flex-1 bg-zinc-950">
 			{isConnected === false && <OfflineIndicator />}
 
 			<View className="px-6 pt-12">
@@ -98,6 +99,6 @@ export function SearchScreen({ navigation }: Props) {
 					/>
 				)}
 			</View>
-		</View>
+		</SafeAreaView>
 	);
 }

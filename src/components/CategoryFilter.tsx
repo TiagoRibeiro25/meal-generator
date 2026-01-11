@@ -36,13 +36,13 @@ export function CategoryFilter({
 				})}
 
 				{/* Invisible spacer at the bottom so last item isn't stuck */}
-				<View style={{ height: 60 }} />
+				<View style={{ height: 140 }} />
 			</ScrollView>
 		);
 	}
 
 	return (
-		<ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 my-4">
+		<ScrollView horizontal showsHorizontalScrollIndicator={false}>
 			{categories.map((cat) => {
 				const isSelected = selectedCategory === cat;
 				return (

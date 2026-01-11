@@ -60,63 +60,93 @@ export function MealScreen({ route }: Props) {
 			<ScrollView className="px-6 pt-6" contentContainerStyle={{ paddingBottom: 40 }}>
 				<BackButton />
 
-				<Image
-					source={{ uri: meal.strMealThumb }}
-					className="w-full h-72 rounded-2xl"
-					resizeMode="cover"
-				/>
-
-				<Text className="mt-4 text-3xl font-bold text-white">{meal.strMeal}</Text>
-				<View className="flex-row items-center justify-between mt-1">
-					<Text className="text-lg text-zinc-400">
-						{meal.strCategory} • {meal.strArea}
-					</Text>
+				{/* Hero Image */}
+				<View className="relative mb-6 overflow-hidden shadow-2xl rounded-3xl">
+					<Image
+						source={{ uri: meal.strMealThumb }}
+						className="w-full h-80"
+						resizeMode="cover"
+					/>
+					<View className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent" />
 				</View>
 
-				{isCached && <OfflineBadge className="mt-2" />}
-
-				<Pressable
-					onPress={toggleFavourite}
-					className={`px-4 py-3 mt-4 rounded-xl ${
-						isFav ? "bg-red-400" : "bg-emerald-500"
-					}`}
-				>
-					<Text className="font-bold text-center text-white">
-						{isFav ? "❤️ Remove from Favourites" : "🤍 Add to Favourites"}
+				{/* Title Section */}
+				<View className="mb-6">
+					<Text className="mb-3 text-4xl font-black leading-tight text-white">
+						{meal.strMeal}
 					</Text>
-				</Pressable>
 
-				{(meal.strSource || meal.strYoutube) && (
+					<View className="flex-row flex-wrap gap-2 mb-3">
+						<View className="px-4 py-2 rounded-full bg-emerald-500/20">
+							<Text className="text-base font-bold text-emerald-400">
+								{meal.strCategory}
+							</Text>
+						</View>
+						<View className="px-4 py-2 rounded-full bg-cyan-500/20">
+							<Text className="text-base font-bold text-cyan-400">{meal.strArea}</Text>
+						</View>
+					</View>
+
+					{isCached && <OfflineBadge />}
+				</View>
+
+				{/* Action Buttons */}
+				<View className="gap-3 mb-8">
 					<Pressable
-						onPress={handleShare}
-						className="px-4 py-3 mt-3 rounded-xl bg-zinc-800"
+						onPress={toggleFavourite}
+						className={`px-6 py-4 rounded-2xl flex-row items-center justify-center active:scale-[0.98] ${
+							isFav ? "bg-red-500" : "bg-emerald-500"
+						}`}
 					>
-						<Text className="font-bold text-center text-white">📤 Share Recipe</Text>
+						<Text className="mr-2 text-2xl">{isFav ? "❤️" : "🤍"}</Text>
+						<Text className="text-lg font-bold text-white">
+							{isFav ? "Remove from Favourites" : "Add to Favourites"}
+						</Text>
 					</Pressable>
-				)}
+
+					{(meal.strSource || meal.strYoutube) && (
+						<Pressable
+							onPress={handleShare}
+							className="flex-row items-center justify-center px-6 py-4 border-2 border-zinc-700 rounded-2xl bg-zinc-800 active:scale-[0.98]"
+						>
+							<Text className="mr-2 text-xl">📤</Text>
+							<Text className="text-lg font-bold text-white">Share Recipe</Text>
+						</Pressable>
+					)}
+				</View>
 
 				<IngredientsList ingredients={meal.ingredients} />
 
-				<Text className="mt-6 mb-2 text-xl font-bold text-white">Instructions</Text>
-				<Text className="leading-7 text-zinc-300">{meal.strInstructions}</Text>
+				{/* Instructions Section */}
+				<View className="p-6 my-6 border-2 border-zinc-800 bg-zinc-900/50 rounded-3xl">
+					<Text className="mb-4 text-2xl font-bold text-white">📝 Instructions</Text>
+					<Text className="text-base leading-7 text-zinc-300">
+						{meal.strInstructions}
+					</Text>
+				</View>
 
-				{meal.strYoutube && (
-					<Pressable
-						onPress={() => Linking.openURL(meal.strYoutube)}
-						className="px-4 py-3 mt-6 bg-red-600 rounded-xl"
-					>
-						<Text className="font-bold text-center text-white">Watch on YouTube</Text>
-					</Pressable>
-				)}
+				{/* External Links */}
+				<View className="gap-3">
+					{meal.strYoutube && (
+						<Pressable
+							onPress={() => Linking.openURL(meal.strYoutube)}
+							className="flex-row items-center justify-center px-6 py-4 bg-red-600 rounded-2xl active:scale-[0.98]"
+						>
+							<Text className="mr-2 text-xl">▶️</Text>
+							<Text className="text-lg font-bold text-white">Watch on YouTube</Text>
+						</Pressable>
+					)}
 
-				{meal.strSource && (
-					<Pressable
-						onPress={() => Linking.openURL(meal.strSource)}
-						className="px-4 py-3 mt-4 bg-blue-600 rounded-xl"
-					>
-						<Text className="font-bold text-center text-white">View Full Recipe</Text>
-					</Pressable>
-				)}
+					{meal.strSource && (
+						<Pressable
+							onPress={() => Linking.openURL(meal.strSource)}
+							className="flex-row items-center justify-center px-6 py-4 bg-blue-600 rounded-2xl active:scale-[0.98]"
+						>
+							<Text className="mr-2 text-xl">🌐</Text>
+							<Text className="text-lg font-bold text-white">View Full Recipe</Text>
+						</Pressable>
+					)}
+				</View>
 			</ScrollView>
 		</SafeAreaView>
 	);
