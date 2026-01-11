@@ -1,6 +1,6 @@
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AddIngredientInput } from "../components/AddIngredientInput";
@@ -11,6 +11,8 @@ import { Meal } from "../types/Meal";
 
 export function AddMealScreen() {
 	const navigation = useNavigation();
+	const route = useRoute();
+	const editingMeal = (route.params as any)?.meal as Meal | undefined;
 	const [title, setTitle] = useState("");
 	const [category, setCategory] = useState("");
 	const [area, setArea] = useState("");
@@ -88,8 +90,10 @@ export function AddMealScreen() {
 			return;
 		}
 
+		const id = editingMeal ? editingMeal.idMeal : `local-${Date.now()}`;
+
 		const meal: Meal = {
-			idMeal: `local-${Date.now()}`,
+			idMeal: id,
 			strMeal: title,
 			strCategory: category,
 			strArea: area,
@@ -120,12 +124,27 @@ export function AddMealScreen() {
 		source,
 		ingredients,
 		navigation,
+		editingMeal,
 	]);
+
+	useEffect(() => {
+		if (!editingMeal) return;
+		setTitle(editingMeal.strMeal || "");
+		setCategory(editingMeal.strCategory || "");
+		setArea(editingMeal.strArea || "");
+		setInstructions(editingMeal.strInstructions || "");
+		setThumb(editingMeal.strMealThumb || "");
+		setYoutube(editingMeal.strYoutube || "");
+		setSource(editingMeal.strSource || "");
+		setIngredients(editingMeal.ingredients?.length ? editingMeal.ingredients : [{ ingredient: "", measure: "" }]);
+	}, [editingMeal]);
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
 			<ScrollView className="px-6 pt-6" contentContainerStyle={{ paddingBottom: 40 }}>
-				<Text className="mb-4 text-3xl font-bold text-white">Add Custom Meal</Text>
+				<Text className="mb-4 text-3xl font-bold text-white">
+					{editingMeal ? "Edit Custom Meal" : "Add Custom Meal"}
+				</Text>
 
 				<TextInput
 					value={title}
@@ -212,7 +231,7 @@ export function AddMealScreen() {
 					className="h-40 px-4 py-3 mb-6 rounded bg-zinc-800 text-zinc-200"
 				/>
 
-				<PrimaryButton title="Save Meal" onPress={handleSave} />
+				<PrimaryButton title={editingMeal ? "Update Meal" : "Save Meal"} onPress={handleSave} />
 				<View className="h-3" />
 				<PrimaryButton
 					title="Cancel"

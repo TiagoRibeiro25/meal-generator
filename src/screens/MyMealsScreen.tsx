@@ -64,7 +64,17 @@ export function MyMealsScreen() {
               }
             />
 
-            <View className="items-end mb-6">
+            <View className="items-end mb-6 flex-row gap-3">
+              <Pressable
+                onPress={() =>
+                  // @ts-ignore
+                  navigation.navigate("AddMeal", { meal: item })
+                }
+                className="px-4 py-2 bg-emerald-600 rounded-2xl"
+              >
+                <Text className="text-white font-bold">Edit</Text>
+              </Pressable>
+
               <Pressable
                 onPress={() => handleDelete(item.idMeal)}
                 className="px-4 py-2 bg-red-600 rounded-2xl"

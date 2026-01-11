@@ -26,6 +26,7 @@ A mobile app built with **React Native + Expo + TypeScript** that lets you disco
 <img src="images/screenshot1.jpg" alt="Screenshot 1" width="200"/>
 <img src="images/screenshot2.jpg" alt="Screenshot 2" width="200"/>
 <img src="images/screenshot3.jpg" alt="Screenshot 3" width="200"/>
+<img src="images/screenshot4.jpg" alt="Screenshot 4" width="200"/>
 
 ---
 

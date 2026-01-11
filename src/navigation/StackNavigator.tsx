@@ -14,7 +14,7 @@ export type RootStackParamList = {
 	Filters: undefined;
 	Search: undefined;
 	Favourites: undefined;
-	AddMeal: undefined;
+	AddMeal: { meal?: Meal } | undefined;
 	MyMeals: undefined;
 };
 

@@ -140,13 +140,27 @@ export function MealScreen({ route }: Props) {
 					)}
 
 					{meal.isLocal && (
-						<Pressable
-							onPress={handleDelete}
-							className="flex-row items-center justify-center px-6 py-4 bg-red-600 rounded-2xl active:scale-[0.98]"
-						>
-							<Text className="mr-2 text-xl">🗑️</Text>
-							<Text className="text-lg font-bold text-white">Delete Meal</Text>
-						</Pressable>
+						<View className="flex-row gap-3">
+							<Pressable
+								onPress={() => {
+								// @ts-ignore
+								navigation.navigate("AddMeal", { meal });
+								}
+							}
+								className="flex-row items-center justify-center px-6 py-4 bg-emerald-600 rounded-2xl active:scale-[0.98]"
+							>
+								<Text className="mr-2 text-xl">✏️</Text>
+								<Text className="text-lg font-bold text-white">Edit Meal</Text>
+							</Pressable>
+
+							<Pressable
+								onPress={handleDelete}
+								className="flex-row items-center justify-center px-6 py-4 bg-red-600 rounded-2xl active:scale-[0.98]"
+							>
+								<Text className="mr-2 text-xl">🗑️</Text>
+								<Text className="text-lg font-bold text-white">Delete Meal</Text>
+							</Pressable>
+						</View>
 					)}
 				</View>
 
