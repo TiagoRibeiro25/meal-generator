@@ -15,6 +15,7 @@ A mobile app built with **React Native + Expo + TypeScript** that lets you disco
 - **Skeleton loaders** for a smooth loading experience.
 - View **ingredients, instructions, and YouTube videos**.
 - **Share meals** using the native share menu.
+- **Add custom meals** and manage them.
 - Modern, responsive **UI with NativeWind (Tailwind CSS)**.
 - Optimized performance for large meal lists.
 

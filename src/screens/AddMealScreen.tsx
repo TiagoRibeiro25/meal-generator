@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
 import { useCallback, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AddIngredientInput } from "../components/AddIngredientInput";
 import { PrimaryButton } from "../components/PrimaryButton";
@@ -40,6 +41,47 @@ export function AddMealScreen() {
 		setIngredients((prev) => prev.filter((_, i) => i !== index));
 	}, []);
 
+	const pickImage = useCallback(async () => {
+		try {
+			const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+			if (perm.status !== "granted") {
+				Alert.alert("Permission required", "Permission to access photos is required.");
+				return;
+			}
+
+			const result = await ImagePicker.launchImageLibraryAsync({
+				mediaTypes: ImagePicker.MediaTypeOptions.Images,
+				allowsEditing: true,
+				quality: 0.8,
+			});
+
+			const uri = (result as any).assets?.[0]?.uri ?? (result as any).uri;
+			if (uri) setThumb(uri);
+		} catch (e) {
+			console.error("Image pick error", e);
+		}
+	}, []);
+
+	const takePhoto = useCallback(async () => {
+		try {
+			const perm = await ImagePicker.requestCameraPermissionsAsync();
+			if (perm.status !== "granted") {
+				Alert.alert("Permission required", "Permission to access camera is required.");
+				return;
+			}
+
+			const result = await ImagePicker.launchCameraAsync({
+				allowsEditing: true,
+				quality: 0.8,
+			});
+
+			const uri = (result as any).assets?.[0]?.uri ?? (result as any).uri;
+			if (uri) setThumb(uri);
+		} catch (e) {
+			console.error("Camera error", e);
+		}
+	}, []);
+
 	const handleSave = useCallback(async () => {
 		if (!title.trim()) {
 			Alert.alert("Validation", "Please enter a meal name");
@@ -62,7 +104,6 @@ export function AddMealScreen() {
 		try {
 			await saveCustomMeal(meal);
 			await cacheMeal(meal);
-			// navigate to meal details
 			// @ts-ignore
 			navigation.navigate("Meal", { meal });
 		} catch (e) {
@@ -110,13 +151,24 @@ export function AddMealScreen() {
 					className="px-4 py-3 mb-3 text-white rounded bg-zinc-800"
 				/>
 
-				<TextInput
-					value={thumb}
-					onChangeText={setThumb}
-					placeholder="Thumbnail URL"
-					placeholderTextColor="#9ca3af"
-					className="px-4 py-3 mb-3 text-white rounded bg-zinc-800"
-				/>
+				<View className="mb-3">
+					{thumb ? (
+						<Image source={{ uri: thumb }} className="w-full h-48 mb-3 rounded" resizeMode="cover" />
+					) : (
+						<View className="items-center justify-center w-full h-48 mb-3 rounded bg-zinc-800">
+							<Text className="text-zinc-500">No image selected</Text>
+						</View>
+					)}
+
+					<View className="flex-row gap-3">
+						<Pressable onPress={pickImage} className="px-4 py-3 rounded bg-emerald-600">
+							<Text className="text-white">Choose Photo</Text>
+						</Pressable>
+						<Pressable onPress={takePhoto} className="px-4 py-3 rounded bg-cyan-600">
+							<Text className="text-white">Take Photo</Text>
+						</Pressable>
+					</View>
+				</View>
 
 				<TextInput
 					value={youtube}
