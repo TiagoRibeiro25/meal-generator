@@ -10,3 +10,8 @@ export const API_BASE_URL = "https://www.themealdb.com/api/json/v1/1";
 
 export const RECENT_KEY = "@recent_meals";
 export const MAX_RECENT = 10;
+
+export const FAVOURITES_KEY = "@meal_favourites";
+
+export const CACHE_PREFIX = "@meal_cache_";
+export const CACHE_INDEX_KEY = "@meal_cache_index";

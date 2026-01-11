@@ -1,9 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CACHE_EXPIRY_MS } from "../config/constants";
+import { CACHE_EXPIRY_MS, CACHE_INDEX_KEY, CACHE_PREFIX } from "../config/constants";
 import { Meal } from "../types/Meal";
-
-const CACHE_PREFIX = "@meal_cache_";
-const CACHE_INDEX_KEY = "@meal_cache_index";
 
 type CacheEntry = {
 	meal: Meal;

@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FAVOURITES_KEY } from "../config/constants";
 import { Meal } from "../types/Meal";
 import { cacheMeal } from "./cacheService";
 
-const FAVOURITES_KEY = "@meal_favourites";
 
 export async function getFavourites(): Promise<Meal[]> {
 	try {
