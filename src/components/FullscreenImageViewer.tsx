@@ -1,12 +1,12 @@
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    Image,
-    Modal,
-    Pressable,
-    ScrollView,
-    Text,
-    View,
+	ActivityIndicator,
+	Image,
+	Modal,
+	Pressable,
+	ScrollView,
+	Text,
+	View,
 } from "react-native";
 
 type Props = {
@@ -50,7 +50,12 @@ export function FullscreenImageViewer({ visible, uri, onClose }: Props) {
 					<ActivityIndicator
 						size="large"
 						color="#ffffff"
-						style={{ position: "absolute", top: "50%", left: "50%", marginLeft: -18 }}
+						style={{
+							position: "absolute",
+							top: "50%",
+							left: "50%",
+							marginLeft: -18,
+						}}
 					/>
 				)}
 			</View>

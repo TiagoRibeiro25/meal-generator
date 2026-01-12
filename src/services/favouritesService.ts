@@ -3,7 +3,6 @@ import { FAVOURITES_KEY } from "../config/constants";
 import { Meal } from "../types/Meal";
 import { cacheMeal } from "./cacheService";
 
-
 export async function getFavourites(): Promise<Meal[]> {
 	try {
 		const jsonValue = await AsyncStorage.getItem(FAVOURITES_KEY);

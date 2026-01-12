@@ -2,7 +2,12 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useState } from "react";
 import { FlatList, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ErrorBanner, MealCard, MealCardSkeleton, OfflineIndicator } from "../components";
+import {
+	ErrorBanner,
+	MealCard,
+	MealCardSkeleton,
+	OfflineIndicator,
+} from "../components";
 import { useLoadingState, useNetworkStatus } from "../hooks";
 import { RootStackParamList } from "../navigation/StackNavigator";
 import { fetchMealById, searchMealsByName } from "../services";
@@ -21,7 +26,10 @@ export function SearchScreen({ navigation }: Props) {
 		if (!query.trim()) return;
 
 		setSearched(true);
-		const meals = await execute(() => searchMealsByName(query), "Failed to search meals");
+		const meals = await execute(
+			() => searchMealsByName(query),
+			"Failed to search meals",
+		);
 
 		if (meals) {
 			setResults(meals);
@@ -32,20 +40,23 @@ export function SearchScreen({ navigation }: Props) {
 
 	const handleMealPress = useCallback(
 		async (id: string) => {
-			const meal = await execute(() => fetchMealById(id), "Failed to load meal details");
+			const meal = await execute(
+				() => fetchMealById(id),
+				"Failed to load meal details",
+			);
 
 			if (meal) {
 				navigation.navigate("Meal", { meal });
 			}
 		},
-		[navigation, execute]
+		[navigation, execute],
 	);
 
 	const renderItem = useCallback(
 		({ item }: { item: Meal }) => (
 			<MealCard meal={item} onPress={() => handleMealPress(item.idMeal)} />
 		),
-		[handleMealPress]
+		[handleMealPress],
 	);
 
 	return (

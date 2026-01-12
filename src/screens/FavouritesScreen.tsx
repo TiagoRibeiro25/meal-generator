@@ -26,13 +26,15 @@ export function FavouritesScreen({ navigation }: Props) {
 				}}
 			/>
 		),
-		[navigation]
+		[navigation],
 	);
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
 			<View className="px-6 pt-6">
-				<Text className="mb-4 text-3xl font-bold text-white">My Favourites</Text>
+				<Text className="mb-4 text-3xl font-bold text-white">
+					My Favourites
+				</Text>
 			</View>
 
 			{loading && (

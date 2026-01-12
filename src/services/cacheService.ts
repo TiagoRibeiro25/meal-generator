@@ -1,5 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CACHE_EXPIRY_MS, CACHE_INDEX_KEY, CACHE_PREFIX } from "../config/constants";
+import {
+	CACHE_EXPIRY_MS,
+	CACHE_INDEX_KEY,
+	CACHE_PREFIX,
+} from "../config/constants";
 import { Meal } from "../types/Meal";
 
 type CacheEntry = {
@@ -19,7 +23,10 @@ async function getCacheIndex(): Promise<CacheIndex> {
 	}
 }
 
-async function updateCacheIndex(mealId: string, timestamp: number): Promise<void> {
+async function updateCacheIndex(
+	mealId: string,
+	timestamp: number,
+): Promise<void> {
 	try {
 		const index = await getCacheIndex();
 		index[mealId] = timestamp;
@@ -36,7 +43,10 @@ export async function cacheMeal(meal: Meal): Promise<void> {
 			timestamp: Date.now(),
 		};
 
-		await AsyncStorage.setItem(`${CACHE_PREFIX}${meal.idMeal}`, JSON.stringify(entry));
+		await AsyncStorage.setItem(
+			`${CACHE_PREFIX}${meal.idMeal}`,
+			JSON.stringify(entry),
+		);
 		await updateCacheIndex(meal.idMeal, entry.timestamp);
 	} catch (e) {
 		console.error("Error caching meal:", e);
@@ -88,7 +98,9 @@ export async function clearOldCache(): Promise<void> {
 			if (now - timestamp < CACHE_EXPIRY_MS) {
 				updatedIndex[mealId] = timestamp;
 			} else {
-				removePromises.push(AsyncStorage.removeItem(`${CACHE_PREFIX}${mealId}`));
+				removePromises.push(
+					AsyncStorage.removeItem(`${CACHE_PREFIX}${mealId}`),
+				);
 			}
 		}
 

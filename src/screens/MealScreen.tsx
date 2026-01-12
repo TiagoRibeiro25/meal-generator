@@ -1,9 +1,31 @@
 import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
+import {
+	Alert,
+	Image,
+	Linking,
+	Pressable,
+	ScrollView,
+	Text,
+	View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BackButton, FullscreenImageViewer, IngredientsList, OfflineBadge } from "../components";
-import { addRecentMeal, cacheMeal, isFavourite, isMealCached, removeCustomMeal, removeFavourite, removeRecentMeal, saveFavourite } from "../services";
+import {
+	BackButton,
+	FullscreenImageViewer,
+	IngredientsList,
+	OfflineBadge,
+} from "../components";
+import {
+	addRecentMeal,
+	cacheMeal,
+	isFavourite,
+	isMealCached,
+	removeCustomMeal,
+	removeFavourite,
+	removeRecentMeal,
+	saveFavourite,
+} from "../services";
 import { Meal } from "../types/Meal";
 import { shareMeal } from "../utils/share";
 
@@ -51,30 +73,37 @@ export function MealScreen({ route }: Props) {
 	}, [meal]);
 
 	const handleDelete = useCallback(() => {
-		Alert.alert("Delete meal", "Are you sure you want to delete this custom meal?", [
-			{ text: "Cancel", style: "cancel" },
-			{
-				text: "Delete",
-				style: "destructive",
-				onPress: async () => {
-					try {
-						await removeCustomMeal(meal.idMeal);
-						await removeRecentMeal(meal.idMeal);
-						// go back after deletion
-						// @ts-ignore
-						navigation.goBack();
-					} catch (e) {
-						console.error("Failed to delete custom meal", e);
-						Alert.alert("Error", "Failed to delete meal");
-					}
+		Alert.alert(
+			"Delete meal",
+			"Are you sure you want to delete this custom meal?",
+			[
+				{ text: "Cancel", style: "cancel" },
+				{
+					text: "Delete",
+					style: "destructive",
+					onPress: async () => {
+						try {
+							await removeCustomMeal(meal.idMeal);
+							await removeRecentMeal(meal.idMeal);
+							// go back after deletion
+							// @ts-ignore
+							navigation.goBack();
+						} catch (e) {
+							console.error("Failed to delete custom meal", e);
+							Alert.alert("Error", "Failed to delete meal");
+						}
+					},
 				},
-			},
-		]);
+			],
+		);
 	}, [meal.idMeal, navigation]);
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
-			<ScrollView className="px-6 pt-6" contentContainerStyle={{ paddingBottom: 40 }}>
+			<ScrollView
+				className="px-6 pt-6"
+				contentContainerStyle={{ paddingBottom: 40 }}
+			>
 				<BackButton />
 
 				{/* Hero Image */}
@@ -108,7 +137,9 @@ export function MealScreen({ route }: Props) {
 							</Text>
 						</View>
 						<View className="px-4 py-2 rounded-full bg-cyan-500/20">
-							<Text className="text-base font-bold text-cyan-400">{meal.strArea}</Text>
+							<Text className="text-base font-bold text-cyan-400">
+								{meal.strArea}
+							</Text>
 						</View>
 					</View>
 
@@ -157,7 +188,9 @@ export function MealScreen({ route }: Props) {
 								className="flex-row items-center justify-center px-6 py-4 bg-red-600 rounded-2xl active:scale-[0.98]"
 							>
 								<Text className="mr-2 text-xl">🗑️</Text>
-								<Text className="text-lg font-bold text-white">Delete Meal</Text>
+								<Text className="text-lg font-bold text-white">
+									Delete Meal
+								</Text>
 							</Pressable>
 						</View>
 					)}
@@ -167,7 +200,9 @@ export function MealScreen({ route }: Props) {
 
 				{/* Instructions Section */}
 				<View className="p-6 my-6 border-2 border-zinc-800 bg-zinc-900/50 rounded-3xl">
-					<Text className="mb-4 text-2xl font-bold text-white">📝 Instructions</Text>
+					<Text className="mb-4 text-2xl font-bold text-white">
+						📝 Instructions
+					</Text>
 					<Text className="text-base leading-7 text-zinc-300">
 						{meal.strInstructions}
 					</Text>
@@ -181,7 +216,9 @@ export function MealScreen({ route }: Props) {
 							className="flex-row items-center justify-center px-6 py-4 bg-red-600 rounded-2xl active:scale-[0.98]"
 						>
 							<Text className="mr-2 text-xl">▶️</Text>
-							<Text className="text-lg font-bold text-white">Watch on YouTube</Text>
+							<Text className="text-lg font-bold text-white">
+								Watch on YouTube
+							</Text>
 						</Pressable>
 					)}
 
@@ -191,7 +228,9 @@ export function MealScreen({ route }: Props) {
 							className="flex-row items-center justify-center px-6 py-4 bg-blue-600 rounded-2xl active:scale-[0.98]"
 						>
 							<Text className="mr-2 text-xl">🌐</Text>
-							<Text className="text-lg font-bold text-white">View Full Recipe</Text>
+							<Text className="text-lg font-bold text-white">
+								View Full Recipe
+							</Text>
 						</Pressable>
 					)}
 				</View>

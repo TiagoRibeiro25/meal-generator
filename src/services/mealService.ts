@@ -9,7 +9,9 @@ async function fetchApi<T>(endpoint: string): Promise<T> {
 		const response = await fetch(`${API_BASE_URL}${endpoint}`);
 
 		if (!response.ok) {
-			throw new NetworkError(`API Error: ${response.status} ${response.statusText}`);
+			throw new NetworkError(
+				`API Error: ${response.status} ${response.statusText}`,
+			);
 		}
 
 		return await response.json();
@@ -22,7 +24,7 @@ async function fetchApi<T>(endpoint: string): Promise<T> {
 }
 
 function parseIngredients(
-	meal: ApiMealDetail
+	meal: ApiMealDetail,
 ): { ingredient: string; measure: string }[] {
 	const ingredients: { ingredient: string; measure: string }[] = [];
 
@@ -30,7 +32,11 @@ function parseIngredients(
 		const ingredient = meal[`strIngredient${i}` as keyof ApiMealDetail];
 		const measure = meal[`strMeasure${i}` as keyof ApiMealDetail];
 
-		if (ingredient && typeof ingredient === "string" && ingredient.trim() !== "") {
+		if (
+			ingredient &&
+			typeof ingredient === "string" &&
+			ingredient.trim() !== ""
+		) {
 			ingredients.push({
 				ingredient,
 				measure: typeof measure === "string" ? measure : "",
@@ -56,12 +62,15 @@ function transformMealDetail(apiMeal: ApiMealDetail): Meal {
 }
 
 export async function fetchCategories(): Promise<string[]> {
-	const data = await fetchApi<ApiResponse<{ strCategory: string }>>("/list.php?c=list");
+	const data =
+		await fetchApi<ApiResponse<{ strCategory: string }>>("/list.php?c=list");
 	return data.meals?.map((c) => c.strCategory) || [];
 }
 
 export async function fetchMealsByCategory(category: string): Promise<Meal[]> {
-	const data = await fetchApi<ApiResponse<ApiMealSummary>>(`/filter.php?c=${category}`);
+	const data = await fetchApi<ApiResponse<ApiMealSummary>>(
+		`/filter.php?c=${category}`,
+	);
 
 	return (
 		data.meals?.map((m) => ({
@@ -82,7 +91,9 @@ export async function fetchMealById(id: string): Promise<Meal> {
 	const cached = await getCachedMeal(id);
 
 	try {
-		const data = await fetchApi<ApiResponse<ApiMealDetail>>(`/lookup.php?i=${id}`);
+		const data = await fetchApi<ApiResponse<ApiMealDetail>>(
+			`/lookup.php?i=${id}`,
+		);
 
 		if (!data.meals || data.meals.length === 0) {
 			throw new NetworkError("Meal not found");
@@ -103,7 +114,7 @@ export async function fetchMealById(id: string): Promise<Meal> {
 
 export async function searchMealsByName(name: string): Promise<Meal[]> {
 	const data = await fetchApi<ApiResponse<ApiMealDetail>>(
-		`/search.php?s=${encodeURIComponent(name)}`
+		`/search.php?s=${encodeURIComponent(name)}`,
 	);
 
 	return data.meals?.map(transformMealDetail) || [];

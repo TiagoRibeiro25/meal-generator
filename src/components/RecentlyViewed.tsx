@@ -40,14 +40,14 @@ export function RecentlyViewed() {
 	useFocusEffect(
 		useCallback(() => {
 			loadRecentMeals();
-		}, [loadRecentMeals])
+		}, [loadRecentMeals]),
 	);
 
 	const handleMealPress = useCallback(
 		(meal: Meal) => {
 			navigation.navigate("Meal", { meal });
 		},
-		[navigation]
+		[navigation],
 	);
 
 	const renderMeal = useCallback(
@@ -71,7 +71,7 @@ export function RecentlyViewed() {
 				</View>
 			</Pressable>
 		),
-		[handleMealPress]
+		[handleMealPress],
 	);
 
 	const renderSkeleton = useCallback(
@@ -84,7 +84,7 @@ export function RecentlyViewed() {
 				</View>
 			</View>
 		),
-		[]
+		[],
 	);
 
 	// Don't show section if no recent meals
@@ -94,7 +94,9 @@ export function RecentlyViewed() {
 
 	return (
 		<View className="mt-8">
-			<Text className="px-6 mb-3 text-xl font-bold text-white">Recently Viewed</Text>
+			<Text className="px-6 mb-3 text-xl font-bold text-white">
+				Recently Viewed
+			</Text>
 
 			{loading ? (
 				<FlatList

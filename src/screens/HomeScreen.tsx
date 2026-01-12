@@ -23,13 +23,15 @@ export function HomeScreen({ navigation }: Props) {
 					{/* Hero Section */}
 					<View className="mb-8">
 						<Text className="mb-2 text-5xl font-black text-white">🍽️</Text>
-						<Text className="mb-3 text-4xl font-black text-white">Discover Your</Text>
+						<Text className="mb-3 text-4xl font-black text-white">
+							Discover Your
+						</Text>
 						<Text className="mb-4 text-4xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 text-emerald-400">
 							Next Meal
 						</Text>
 						<Text className="text-base leading-6 text-zinc-400">
-							Explore thousands of delicious recipes from around the world. Find your next
-							favorite dish.
+							Explore thousands of delicious recipes from around the world. Find
+							your next favorite dish.
 						</Text>
 					</View>
 
@@ -74,7 +76,9 @@ export function HomeScreen({ navigation }: Props) {
 
 				{/* Footer */}
 				<View className="items-center px-6 mt-12">
-					<Text className="text-sm text-zinc-600">Made with ❤️ by Tiago Ribeiro</Text>
+					<Text className="text-sm text-zinc-600">
+						Made with ❤️ by Tiago Ribeiro
+					</Text>
 				</View>
 			</ScrollView>
 		</SafeAreaView>

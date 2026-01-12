@@ -2,7 +2,15 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { CategoryFilter, CategoryFilterSkeleton, ErrorBanner, MealCard, MealCardSkeleton, NetworkError, OfflineIndicator } from "../components";
+import {
+	CategoryFilter,
+	CategoryFilterSkeleton,
+	ErrorBanner,
+	MealCard,
+	MealCardSkeleton,
+	NetworkError,
+	OfflineIndicator,
+} from "../components";
 import { useCategories, useMealsByCategory, useNetworkStatus } from "../hooks";
 import { RootStackParamList } from "../navigation/StackNavigator";
 import { fetchMealById } from "../services";
@@ -37,14 +45,14 @@ export function FilterScreen({ navigation }: Props) {
 				setMealError(e.message || "Failed to load meal details");
 			}
 		},
-		[navigation]
+		[navigation],
 	);
 
 	const renderMealItem = useCallback(
 		({ item }: { item: Meal }) => (
 			<MealCard meal={item} onPress={() => handleMealPress(item.idMeal)} />
 		),
-		[handleMealPress]
+		[handleMealPress],
 	);
 
 	if (categoryError && !loadingCategories && categories.length === 0) {
@@ -86,7 +94,9 @@ export function FilterScreen({ navigation }: Props) {
 				)}
 			</View>
 
-			{(mealError || mealsError) && <ErrorBanner message={mealError || mealsError!} />}
+			{(mealError || mealsError) && (
+				<ErrorBanner message={mealError || mealsError!} />
+			)}
 
 			{loadingMeals && (
 				<View className="px-6">

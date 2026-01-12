@@ -5,7 +5,10 @@ export function useLoadingState() {
 	const [error, setError] = useState<string | null>(null);
 
 	const execute = useCallback(
-		async <T,>(action: () => Promise<T>, errorMessage?: string): Promise<T | null> => {
+		async <T,>(
+			action: () => Promise<T>,
+			errorMessage?: string,
+		): Promise<T | null> => {
 			setLoading(true);
 			setError(null);
 
@@ -20,7 +23,7 @@ export function useLoadingState() {
 				setLoading(false);
 			}
 		},
-		[]
+		[],
 	);
 
 	const reset = useCallback(() => {

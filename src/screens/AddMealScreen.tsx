@@ -1,7 +1,15 @@
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import {
+	Alert,
+	Image,
+	Pressable,
+	ScrollView,
+	Text,
+	TextInput,
+	View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AddIngredientInput, PrimaryButton } from "../components";
 import { cacheMeal, persistImage, saveCustomMeal } from "../services";
@@ -30,7 +38,7 @@ export function AddMealScreen() {
 				return copy;
 			});
 		},
-		[]
+		[],
 	);
 
 	const addIngredient = useCallback(() => {
@@ -45,7 +53,10 @@ export function AddMealScreen() {
 		try {
 			const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
 			if (perm.status !== "granted") {
-				Alert.alert("Permission required", "Permission to access photos is required.");
+				Alert.alert(
+					"Permission required",
+					"Permission to access photos is required.",
+				);
 				return;
 			}
 
@@ -66,7 +77,10 @@ export function AddMealScreen() {
 		try {
 			const perm = await ImagePicker.requestCameraPermissionsAsync();
 			if (perm.status !== "granted") {
-				Alert.alert("Permission required", "Permission to access camera is required.");
+				Alert.alert(
+					"Permission required",
+					"Permission to access camera is required.",
+				);
 				return;
 			}
 
@@ -90,8 +104,8 @@ export function AddMealScreen() {
 
 		const id = editingMeal ? editingMeal.idMeal : `local-${Date.now()}`;
 
-    // Persist picked image into app storage (delegated to imageService)
-    const finalThumb = await persistImage(thumb, id);
+		// Persist picked image into app storage (delegated to imageService)
+		const finalThumb = await persistImage(thumb, id);
 
 		const meal: Meal = {
 			idMeal: id,
@@ -140,13 +154,16 @@ export function AddMealScreen() {
 		setIngredients(
 			editingMeal.ingredients?.length
 				? editingMeal.ingredients
-				: [{ ingredient: "", measure: "" }]
+				: [{ ingredient: "", measure: "" }],
 		);
 	}, [editingMeal]);
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
-			<ScrollView className="px-6 pt-6" contentContainerStyle={{ paddingBottom: 40 }}>
+			<ScrollView
+				className="px-6 pt-6"
+				contentContainerStyle={{ paddingBottom: 40 }}
+			>
 				<Text className="mb-4 text-3xl font-bold text-white">
 					{editingMeal ? "Edit Custom Meal" : "Add Custom Meal"}
 				</Text>
@@ -189,10 +206,16 @@ export function AddMealScreen() {
 					)}
 
 					<View className="flex-row gap-3">
-						<Pressable onPress={pickImage} className="px-4 py-3 rounded bg-emerald-600">
+						<Pressable
+							onPress={pickImage}
+							className="px-4 py-3 rounded bg-emerald-600"
+						>
 							<Text className="text-white">Choose Photo</Text>
 						</Pressable>
-						<Pressable onPress={takePhoto} className="px-4 py-3 rounded bg-cyan-600">
+						<Pressable
+							onPress={takePhoto}
+							className="px-4 py-3 rounded bg-cyan-600"
+						>
 							<Text className="text-white">Take Photo</Text>
 						</Pressable>
 					</View>

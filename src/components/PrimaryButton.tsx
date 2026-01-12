@@ -19,9 +19,7 @@ export function PrimaryButton({
 		<Pressable
 			onPress={onPress}
 			className={`py-5 px-6 rounded-3xl active:scale-[0.98] ${
-				isPrimary
-					? "bg-emerald-500"
-					: "bg-zinc-800 border-2 border-zinc-700"
+				isPrimary ? "bg-emerald-500" : "bg-zinc-800 border-2 border-zinc-700"
 			}`}
 		>
 			<View className="flex-row items-center justify-center">
