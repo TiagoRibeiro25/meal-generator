@@ -85,8 +85,6 @@ export function MealScreen({ route }: Props) {
 						try {
 							await removeCustomMeal(meal.idMeal);
 							await removeRecentMeal(meal.idMeal);
-							// go back after deletion
-							// @ts-ignore
 							navigation.goBack();
 						} catch (e) {
 							console.error("Failed to delete custom meal", e);
@@ -151,7 +149,7 @@ export function MealScreen({ route }: Props) {
 					<Pressable
 						onPress={toggleFavourite}
 						className={`px-6 py-4 rounded-2xl flex-row items-center justify-center active:scale-[0.98] ${
-							isFav ? "bg-red-500" : "bg-emerald-500"
+							isFav ? "bg-red-400" : "bg-emerald-500"
 						}`}
 					>
 						<Text className="mr-2 text-2xl">{isFav ? "❤️" : "🤍"}</Text>
