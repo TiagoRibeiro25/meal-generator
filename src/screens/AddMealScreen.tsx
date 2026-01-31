@@ -15,6 +15,11 @@ import { AddIngredientInput, PrimaryButton } from "../components";
 import { cacheMeal, persistImage, saveCustomMeal } from "../services";
 import { Meal } from "../types/Meal";
 
+type Ingredient = {
+	ingredient: string;
+	measure: string;
+};
+
 export function AddMealScreen() {
 	const navigation = useNavigation();
 	const route = useRoute();
@@ -26,9 +31,9 @@ export function AddMealScreen() {
 	const [thumb, setThumb] = useState("");
 	const [youtube, setYoutube] = useState("");
 	const [source, setSource] = useState("");
-	const [ingredients, setIngredients] = useState<
-		{ ingredient: string; measure: string }[]
-	>([{ ingredient: "", measure: "" }]);
+	const [ingredients, setIngredients] = useState<Ingredient[]>([
+		{ ingredient: "", measure: "" },
+	]);
 
 	const setIngredient = useCallback(
 		(index: number, ingredient: string, measure: string) => {
