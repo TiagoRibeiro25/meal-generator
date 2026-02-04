@@ -20,15 +20,9 @@ export function RecentlyViewed() {
 			const recentIds = await getRecentMealIds();
 
 			// Load cached meals
-			const meals: Meal[] = [];
-			for (const id of recentIds) {
-				const cached = await getCachedMeal(id);
-				if (cached) {
-					meals.push(cached);
-				}
-			}
+			const meals = await Promise.all(recentIds.map((id) => getCachedMeal(id)));
 
-			setRecentMeals(meals);
+			setRecentMeals(meals.filter((m): m is Meal => Boolean(m)));
 		} catch (e) {
 			console.error("Error loading recent meals:", e);
 		} finally {

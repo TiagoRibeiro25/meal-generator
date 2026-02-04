@@ -1,4 +1,4 @@
-import { Pressable, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 type Props = {
 	index: number;
@@ -34,12 +34,10 @@ export function AddIngredientInput({
 			<Pressable
 				onPress={() => onRemove(index)}
 				className="px-3 py-2 bg-red-500 rounded"
+				accessibilityRole="button"
+				accessibilityLabel="Remove ingredient"
 			>
-				<View>
-					<View>
-						<View />
-					</View>
-				</View>
+				<Text className="font-bold text-white">Remove</Text>
 			</Pressable>
 		</View>
 	);
