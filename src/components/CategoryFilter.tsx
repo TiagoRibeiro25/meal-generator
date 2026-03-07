@@ -4,7 +4,7 @@ type Props = {
 	categories: string[];
 	selectedCategory: string | null;
 	onSelect: (category: string) => void;
-	vertical?: boolean; // layout mode
+	vertical?: boolean;
 };
 
 export function CategoryFilter({
@@ -15,46 +15,65 @@ export function CategoryFilter({
 }: Props) {
 	if (vertical) {
 		return (
-			<ScrollView className="px-4 mt-4 mb-4" showsVerticalScrollIndicator>
-				{categories.map((cat) => {
-					const isSelected = selectedCategory === cat;
-					return (
-						<Pressable
-							key={cat}
-							onPress={() => onSelect(cat)}
-							className={`px-4 py-3 mb-3 rounded-full ${
-								isSelected ? "bg-emerald-500" : "bg-zinc-800"
-							} flex-none`}
-						>
-							<Text
-								className={`font-semibold text-center ${isSelected ? "text-zinc-900" : "text-white"}`}
+			<ScrollView
+				className="mt-3 mb-4"
+				showsVerticalScrollIndicator={false}
+				keyboardShouldPersistTaps="handled"
+			>
+				<View className="flex-row flex-wrap gap-2 px-6">
+					{categories.map((cat) => {
+						const isSelected = selectedCategory === cat;
+						return (
+							<Pressable
+								key={cat}
+								onPress={() => onSelect(cat)}
+								className={`px-4 py-2.5 rounded-full border active:scale-[0.97] ${
+									isSelected
+										? "bg-emerald-500 border-emerald-500"
+										: "bg-zinc-900 border-zinc-700"
+								}`}
 							>
-								{cat}
-							</Text>
-						</Pressable>
-					);
-				})}
+								<Text
+									className={`text-sm font-semibold ${
+										isSelected ? "text-zinc-950" : "text-zinc-300"
+									}`}
+								>
+									{cat}
+								</Text>
+							</Pressable>
+						);
+					})}
+				</View>
 
-				{/* Invisible spacer at the bottom so last item isn't stuck */}
-				<View style={{ height: 140 }} />
+				{/* Bottom spacer so last row isn't cut off */}
+				<View style={{ height: 120 }} />
 			</ScrollView>
 		);
 	}
 
 	return (
-		<ScrollView horizontal showsHorizontalScrollIndicator={false}>
+		<ScrollView
+			horizontal
+			showsHorizontalScrollIndicator={false}
+			contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 12 }}
+			keyboardShouldPersistTaps="handled"
+		>
 			{categories.map((cat) => {
 				const isSelected = selectedCategory === cat;
 				return (
 					<Pressable
 						key={cat}
 						onPress={() => onSelect(cat)}
-						className={`px-4 py-1 mr-2 rounded-full ${
-							isSelected ? "bg-emerald-500" : "bg-zinc-800"
-						} flex-none items-center justify-center`}
+						className={`mr-2 px-4 py-2.5 rounded-full border flex-none active:scale-[0.97] ${
+							isSelected
+								? "bg-emerald-500 border-emerald-500"
+								: "bg-zinc-900 border-zinc-700"
+						}`}
 					>
 						<Text
-							className={`font-semibold ${isSelected ? "text-zinc-900" : "text-white"}`}
+							className={`text-sm font-semibold ${
+								isSelected ? "text-zinc-950" : "text-zinc-300"
+							}`}
 						>
 							{cat}
 						</Text>

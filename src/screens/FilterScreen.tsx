@@ -64,49 +64,74 @@ export function FilterScreen({ navigation }: Props) {
 		);
 	}
 
+	const hasResults = meals.length > 0 && !loadingMeals;
+
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
 			{isConnected === false && <OfflineIndicator />}
 
-			<View className="px-6 pt-8">
-				<View className="mb-6">
-					<Text className="mb-2 text-4xl font-black text-white">Browse by</Text>
-					<Text className="text-4xl font-black text-emerald-400">Category</Text>
-				</View>
+			<View className="px-6 pt-8 pb-4 bg-zinc-950">
+				<Text className="mb-0.5 text-sm font-semibold tracking-widest uppercase text-emerald-500">
+					Discover
+				</Text>
+				<Text
+					className="text-4xl font-black text-white"
+					style={{ letterSpacing: -0.5 }}
+				>
+					Browse by <Text className="text-emerald-400">Category</Text>
+				</Text>
 
-				{!loadingCategories && meals.length === 0 && (
-					<Text className="mb-4 text-base text-zinc-500">
-						Select a category to discover delicious meals
+				{!loadingCategories && !selectedCategory && (
+					<Text className="mt-2 text-sm text-zinc-500">
+						Tap a category to explore meals
 					</Text>
 				)}
 
-				{categoryError && <ErrorBanner message={categoryError} />}
+				{selectedCategory && (
+					<View className="flex-row items-center mt-2">
+						<View className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+							<Text className="text-sm font-semibold text-emerald-400">
+								{selectedCategory}
+							</Text>
+						</View>
+						{!loadingMeals && hasResults && (
+							<Text className="ml-3 text-sm text-zinc-500">
+								{meals.length} meals found
+							</Text>
+						)}
+					</View>
+				)}
+			</View>
 
+			{categoryError && <ErrorBanner message={categoryError} />}
+			{(mealError || mealsError) && (
+				<ErrorBanner message={mealError || mealsError!} />
+			)}
+
+			<View className="bg-zinc-950">
 				{loadingCategories ? (
-					<CategoryFilterSkeleton vertical={meals.length === 0} />
+					<CategoryFilterSkeleton vertical={!selectedCategory} />
 				) : (
 					<CategoryFilter
 						categories={categories}
 						selectedCategory={selectedCategory}
 						onSelect={setSelectedCategory}
-						vertical={meals.length === 0}
+						vertical={!selectedCategory}
 					/>
 				)}
 			</View>
 
-			{(mealError || mealsError) && (
-				<ErrorBanner message={mealError || mealsError!} />
-			)}
+			{selectedCategory && <View className="h-px mx-6 bg-zinc-800" />}
 
 			{loadingMeals && (
-				<View className="px-6">
-					{[...Array(5)].map((_, i) => (
+				<View className="px-6 pt-4">
+					{[...Array(4)].map((_, i) => (
 						<MealCardSkeleton key={i} />
 					))}
 				</View>
 			)}
 
-			{meals.length > 0 && !loadingMeals && (
+			{hasResults && (
 				<FlatList
 					data={meals}
 					keyExtractor={(item) => item.idMeal}
@@ -117,12 +142,27 @@ export function FilterScreen({ navigation }: Props) {
 					removeClippedSubviews={true}
 					contentContainerStyle={{
 						paddingHorizontal: 24,
-						paddingBottom: 40,
-						paddingTop: 12,
+						paddingBottom: 48,
+						paddingTop: 16,
 					}}
 					showsVerticalScrollIndicator={false}
 				/>
 			)}
+
+			{selectedCategory &&
+				!loadingMeals &&
+				meals.length === 0 &&
+				!mealsError && (
+					<View className="items-center justify-center flex-1 px-6">
+						<Text className="mb-2 text-5xl">🍽️</Text>
+						<Text className="text-lg font-bold text-center text-white">
+							No meals found
+						</Text>
+						<Text className="mt-1 text-sm text-center text-zinc-500">
+							Try selecting a different category
+						</Text>
+					</View>
+				)}
 		</SafeAreaView>
 	);
 }

@@ -1,11 +1,66 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { OfflineIndicator, PrimaryButton, RecentlyViewed } from "../components";
+import { OfflineIndicator, RecentlyViewed } from "../components";
 import { useNetworkStatus } from "../hooks";
 import { RootStackParamList } from "../navigation/StackNavigator";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
+
+type NavTile = {
+	icon: string;
+	label: string;
+	description: string;
+	screen: keyof RootStackParamList;
+	accent: string;
+	accentText: string;
+	primary?: boolean;
+};
+
+const NAV_TILES: NavTile[] = [
+	{
+		icon: "🔍",
+		label: "Browse Categories",
+		description: "Explore meals by cuisine type",
+		screen: "Filters",
+		accent: "bg-emerald-500",
+		accentText: "text-zinc-950",
+		primary: true,
+	},
+	{
+		icon: "🔎",
+		label: "Search Recipes",
+		description: "Find any dish by name",
+		screen: "Search",
+		accent: "bg-cyan-500",
+		accentText: "text-zinc-950",
+		primary: true,
+	},
+	{
+		icon: "❤️",
+		label: "My Favourites",
+		description: "Saved meals you love",
+		screen: "Favourites",
+		accent: "bg-zinc-800",
+		accentText: "text-white",
+	},
+	{
+		icon: "📚",
+		label: "My Meals",
+		description: "Your custom recipe collection",
+		screen: "MyMeals",
+		accent: "bg-zinc-800",
+		accentText: "text-white",
+	},
+	{
+		icon: "➕",
+		label: "Add Custom Meal",
+		description: "Create your own recipe",
+		screen: "AddMeal",
+		accent: "bg-zinc-800",
+		accentText: "text-white",
+	},
+];
 
 export function HomeScreen({ navigation }: Props) {
 	const isConnected = useNetworkStatus();
@@ -16,67 +71,91 @@ export function HomeScreen({ navigation }: Props) {
 
 			<ScrollView
 				className="flex-1"
-				contentContainerStyle={{ paddingBottom: 40 }}
+				contentContainerStyle={{ paddingBottom: 48 }}
 				showsVerticalScrollIndicator={false}
 			>
-				<View className="px-6 pt-8">
-					{/* Hero Section */}
-					<View className="mb-8">
-						<Text className="mb-2 text-5xl font-black text-white">🍽️</Text>
-						<Text className="mb-3 text-4xl font-black text-white">
-							Discover Your
-						</Text>
-						<Text className="mb-4 text-4xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 text-emerald-400">
-							Next Meal
-						</Text>
-						<Text className="text-base leading-6 text-zinc-400">
-							Explore thousands of delicious recipes from around the world. Find
-							your next favorite dish.
-						</Text>
-					</View>
+				<View className="px-6 pt-10 pb-8">
+					<Text className="mb-1 text-sm font-semibold tracking-widest uppercase text-emerald-500">
+						Welcome back
+					</Text>
+					<Text className="text-5xl font-black leading-tight text-white">
+						What are you{"\n"}
+						<Text className="text-emerald-400">cooking</Text> today?
+					</Text>
+					<Text className="mt-3 text-base leading-6 text-zinc-500">
+						Discover thousands of recipes from around the world.
+					</Text>
+				</View>
 
-					{/* Action Cards */}
-					<View className="gap-4 mb-8">
-						<PrimaryButton
-							title="Browse Categories"
-							icon="🔍"
-							onPress={() => navigation.navigate("Filters")}
-						/>
+				<View className="flex-row mx-6 mb-8 overflow-hidden divide-x divide-zinc-800 rounded-2xl bg-zinc-900">
+					{[
+						{ value: "15+", label: "Categories" },
+						{ value: "100+", label: "Recipes" },
+						{ value: "∞", label: "Inspiration" },
+					].map((stat) => (
+						<View key={stat.label} className="items-center flex-1 py-4">
+							<Text className="text-2xl font-black text-emerald-400">
+								{stat.value}
+							</Text>
+							<Text className="mt-0.5 text-xs font-medium text-zinc-500">
+								{stat.label}
+							</Text>
+						</View>
+					))}
+				</View>
 
-						<PrimaryButton
-							title="Search Recipes"
-							icon="🔎"
-							onPress={() => navigation.navigate("Search")}
-						/>
+				<View className="flex-row gap-4 px-6 mb-4">
+					{NAV_TILES.filter((t) => t.primary).map((tile) => (
+						<Pressable
+							key={tile.screen}
+							onPress={() => navigation.navigate(tile.screen as any)}
+							className={`flex-1 p-5 rounded-3xl ${tile.accent} active:scale-[0.97]`}
+						>
+							<Text className="mb-3 text-3xl">{tile.icon}</Text>
+							<Text
+								className={`text-base font-black leading-snug ${tile.accentText}`}
+							>
+								{tile.label}
+							</Text>
+							<Text
+								className={`mt-1 text-xs leading-4 ${
+									tile.primary ? "text-zinc-800" : "text-zinc-400"
+								}`}
+							>
+								{tile.description}
+							</Text>
+						</Pressable>
+					))}
+				</View>
 
-						<PrimaryButton
-							title="My Favourites"
-							icon="❤️"
-							onPress={() => navigation.navigate("Favourites")}
-							variant="secondary"
-						/>
-
-						<PrimaryButton
-							title="My Meals"
-							icon="📚"
-							onPress={() => navigation.navigate("MyMeals")}
-							variant="secondary"
-						/>
-
-						<PrimaryButton
-							title="Add Custom Meal"
-							icon="➕"
-							onPress={() => navigation.navigate("AddMeal")}
-							variant="secondary"
-						/>
-					</View>
+				<View className="gap-3 px-6 mb-8">
+					{NAV_TILES.filter((t) => !t.primary).map((tile) => (
+						<Pressable
+							key={tile.screen}
+							onPress={() => navigation.navigate(tile.screen as any)}
+							className="flex-row items-center p-4 border-2 border-zinc-800 bg-zinc-900 rounded-2xl active:scale-[0.98]"
+						>
+							<View className="items-center justify-center w-12 h-12 mr-4 rounded-xl bg-zinc-800">
+								<Text className="text-2xl">{tile.icon}</Text>
+							</View>
+							<View className="flex-1">
+								<Text className="text-base font-bold text-white">
+									{tile.label}
+								</Text>
+								<Text className="mt-0.5 text-sm text-zinc-500">
+									{tile.description}
+								</Text>
+							</View>
+							<Text className="text-lg text-zinc-600">›</Text>
+						</Pressable>
+					))}
 				</View>
 
 				<RecentlyViewed />
 
-				{/* Footer */}
 				<View className="items-center px-6 mt-12">
-					<Text className="text-sm text-zinc-600">
+					<View className="w-8 h-0.5 mb-3 rounded-full bg-zinc-800" />
+					<Text className="text-xs text-zinc-600">
 						Made with ❤️ by Tiago Ribeiro
 					</Text>
 				</View>

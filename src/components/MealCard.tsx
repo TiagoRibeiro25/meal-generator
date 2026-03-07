@@ -23,41 +23,57 @@ export function MealCard({ meal, onPress }: Props) {
 	return (
 		<Pressable
 			onPress={onPress}
-			className="mb-4 overflow-hidden shadow-2xl bg-zinc-900 rounded-3xl active:scale-[0.98]"
+			className="mb-4 overflow-hidden border border-zinc-800 bg-zinc-900 rounded-3xl active:scale-[0.98]"
 		>
+			{/* Thumbnail */}
 			<View className="relative">
 				<Image
 					source={{ uri: meal.strMealThumb }}
-					className="w-full h-48"
+					className="w-full"
+					style={{ height: 192 }}
 					resizeMode="cover"
 				/>
-				{/* Gradient Overlay */}
-				<View className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-zinc-900 to-transparent" />
+
+				{/* Local badge overlay */}
+				{meal.isLocal && (
+					<View className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-zinc-950/80 border border-violet-500/40">
+						<Text className="text-xs font-semibold text-violet-400">
+							✏️ Custom
+						</Text>
+					</View>
+				)}
 			</View>
 
-			<View className="p-5">
-				<Text className="mb-2 text-xl font-bold text-white" numberOfLines={2}>
+			{/* Content */}
+			<View className="p-4">
+				<Text
+					className="mb-3 text-lg font-bold leading-snug text-white"
+					numberOfLines={2}
+					style={{ letterSpacing: -0.2 }}
+				>
 					{meal.strMeal}
 				</Text>
 
 				<View className="flex-row items-center justify-between">
-					<View className="flex-row items-center gap-2">
-						<View className="px-3 py-1 rounded-full bg-zinc-800">
-							<Text className="text-sm font-semibold text-emerald-400">
-								{meal.strCategory}
-							</Text>
-						</View>
-						{meal.strArea && (
-							<View className="px-3 py-1 rounded-full bg-zinc-800">
-								<Text className="text-sm font-semibold text-cyan-400">
-									{meal.strArea}
+					<View className="flex-row flex-wrap gap-2">
+						{meal.strCategory ? (
+							<View className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
+								<Text className="text-xs font-semibold text-emerald-400">
+									{meal.strCategory}
 								</Text>
 							</View>
-						)}
+						) : null}
+						{meal.strArea ? (
+							<View className="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/25">
+								<Text className="text-xs font-semibold text-cyan-400">
+									🌍 {meal.strArea}
+								</Text>
+							</View>
+						) : null}
 					</View>
-				</View>
 
-				{isCached && <OfflineBadge className="mt-3" />}
+					{isCached && <OfflineBadge />}
+				</View>
 			</View>
 		</Pressable>
 	);

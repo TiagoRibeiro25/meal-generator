@@ -97,23 +97,49 @@ export function MealScreen({ route }: Props) {
 	}, [meal.idMeal, navigation]);
 
 	return (
-		<SafeAreaView className="flex-1 bg-zinc-950">
+		<SafeAreaView className="flex-1 bg-zinc-950" edges={["top"]}>
 			<ScrollView
-				className="px-6 pt-6"
-				contentContainerStyle={{ paddingBottom: 40 }}
+				contentContainerStyle={{ paddingBottom: 48 }}
+				showsVerticalScrollIndicator={false}
 			>
-				<BackButton />
-
-				{/* Hero Image */}
-				<View className="relative mb-6 overflow-hidden shadow-2xl rounded-3xl">
+				<View className="relative">
 					<Pressable onPress={() => setViewerVisible(true)}>
 						<Image
 							source={{ uri: meal.strMealThumb }}
-							className="w-full h-80"
+							className="w-full"
+							style={{ height: 320 }}
 							resizeMode="cover"
 						/>
-						<View className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent" />
 					</Pressable>
+
+					{/* Dark scrim at top for back button legibility */}
+					<View
+						className="absolute top-0 left-0 right-0 h-24"
+						style={{ backgroundColor: "rgba(9,9,11,0.45)" }}
+					/>
+
+					{/* Dark scrim at bottom for title bleed */}
+					<View
+						className="absolute bottom-0 left-0 right-0"
+						style={{
+							height: 120,
+							backgroundColor: "rgba(9,9,11,0.55)",
+						}}
+					/>
+
+					{/* Back button overlay */}
+					<View className="absolute top-4 left-4">
+						<BackButton />
+					</View>
+
+					{/* Tap-to-expand hint */}
+					<View className="absolute bottom-4 right-4">
+						<View className="px-3 py-1 rounded-full bg-zinc-950/70">
+							<Text className="text-xs font-semibold text-zinc-300">
+								🔍 Tap to expand
+							</Text>
+						</View>
+					</View>
 				</View>
 
 				<FullscreenImageViewer
@@ -122,114 +148,173 @@ export function MealScreen({ route }: Props) {
 					onClose={() => setViewerVisible(false)}
 				/>
 
-				{/* Title Section */}
-				<View className="mb-6">
-					<Text className="mb-3 text-4xl font-black leading-tight text-white">
-						{meal.strMeal}
-					</Text>
+				<View className="px-5">
+					<View className="pt-5 pb-4">
+						<Text
+							className="mb-3 text-3xl font-black leading-tight text-white"
+							style={{ letterSpacing: -0.5 }}
+						>
+							{meal.strMeal}
+						</Text>
 
-					<View className="flex-row flex-wrap gap-2 mb-3">
-						<View className="px-4 py-2 rounded-full bg-emerald-500/20">
-							<Text className="text-base font-bold text-emerald-400">
-								{meal.strCategory}
-							</Text>
+						<View className="flex-row flex-wrap gap-2 mb-2">
+							{meal.strCategory ? (
+								<View className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+									<Text className="text-sm font-semibold text-emerald-400">
+										{meal.strCategory}
+									</Text>
+								</View>
+							) : null}
+							{meal.strArea ? (
+								<View className="px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30">
+									<Text className="text-sm font-semibold text-cyan-400">
+										🌍 {meal.strArea}
+									</Text>
+								</View>
+							) : null}
+							{meal.isLocal ? (
+								<View className="px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/30">
+									<Text className="text-sm font-semibold text-violet-400">
+										✏️ Custom
+									</Text>
+								</View>
+							) : null}
 						</View>
-						<View className="px-4 py-2 rounded-full bg-cyan-500/20">
-							<Text className="text-base font-bold text-cyan-400">
-								{meal.strArea}
-							</Text>
-						</View>
+
+						{isCached && <OfflineBadge className="mt-1" />}
 					</View>
 
-					{isCached && <OfflineBadge />}
-				</View>
+					<View className="h-px mb-5 bg-zinc-800" />
 
-				{/* Action Buttons */}
-				<View className="gap-3 mb-8">
 					<Pressable
 						onPress={toggleFavourite}
-						className={`px-6 py-4 rounded-2xl flex-row items-center justify-center active:scale-[0.98] ${
-							isFav ? "bg-red-400" : "bg-emerald-500"
+						className={`flex-row items-center justify-center py-4 mb-3 rounded-2xl active:scale-[0.98] ${
+							isFav
+								? "bg-red-500/15 border-2 border-red-500/40"
+								: "bg-emerald-500 border-2 border-emerald-500"
 						}`}
 					>
-						<Text className="mr-2 text-2xl">{isFav ? "❤️" : "🤍"}</Text>
-						<Text className="text-lg font-bold text-white">
+						<Text className="mr-2 text-xl">{isFav ? "❤️" : "🤍"}</Text>
+						<Text
+							className={`text-base font-bold ${isFav ? "text-red-400" : "text-zinc-950"}`}
+						>
 							{isFav ? "Remove from Favourites" : "Add to Favourites"}
 						</Text>
 					</Pressable>
 
-					{(meal.strSource || meal.strYoutube) && (
-						<Pressable
-							onPress={handleShare}
-							className="flex-row items-center justify-center px-6 py-4 border-2 border-zinc-700 rounded-2xl bg-zinc-800 active:scale-[0.98]"
-						>
-							<Text className="mr-2 text-xl">📤</Text>
-							<Text className="text-lg font-bold text-white">Share Recipe</Text>
-						</Pressable>
-					)}
-
-					{meal.isLocal && (
-						<View className="flex-row gap-3">
+					<View className="flex-row gap-3 mb-6">
+						{(meal.strSource || meal.strYoutube) && (
 							<Pressable
-								onPress={() => {
-									// @ts-ignore
-									navigation.navigate("AddMeal", { meal });
-								}}
-								className="flex-row items-center justify-center px-6 py-4 bg-emerald-600 rounded-2xl active:scale-[0.98]"
+								onPress={handleShare}
+								className="flex-row flex-1 items-center justify-center py-3 border-2 border-zinc-700 rounded-2xl bg-zinc-900 active:scale-[0.98]"
 							>
-								<Text className="mr-2 text-xl">✏️</Text>
-								<Text className="text-lg font-bold text-white">Edit Meal</Text>
+								<Text className="mr-2 text-lg">📤</Text>
+								<Text className="text-sm font-bold text-white">Share</Text>
 							</Pressable>
+						)}
 
-							<Pressable
-								onPress={handleDelete}
-								className="flex-row items-center justify-center px-6 py-4 bg-red-600 rounded-2xl active:scale-[0.98]"
-							>
-								<Text className="mr-2 text-xl">🗑️</Text>
-								<Text className="text-lg font-bold text-white">
-									Delete Meal
+						{meal.isLocal && (
+							<>
+								<Pressable
+									onPress={() => {
+										// @ts-ignore
+										navigation.navigate("AddMeal", { meal });
+									}}
+									className="flex-row flex-1 items-center justify-center py-3 bg-emerald-600/20 border-2 border-emerald-600/40 rounded-2xl active:scale-[0.98]"
+								>
+									<Text className="mr-2 text-lg">✏️</Text>
+									<Text className="text-sm font-bold text-emerald-400">
+										Edit
+									</Text>
+								</Pressable>
+
+								<Pressable
+									onPress={handleDelete}
+									className="flex-row flex-1 items-center justify-center py-3 bg-red-600/20 border-2 border-red-600/40 rounded-2xl active:scale-[0.98]"
+								>
+									<Text className="mr-2 text-lg">🗑️</Text>
+									<Text className="text-sm font-bold text-red-400">Delete</Text>
+								</Pressable>
+							</>
+						)}
+					</View>
+
+					<View className="p-5 mb-4 border border-zinc-800 bg-zinc-900 rounded-3xl">
+						<View className="flex-row items-center mb-4">
+							<View className="items-center justify-center w-9 h-9 mr-3 rounded-xl bg-emerald-500/15">
+								<Text className="text-lg">🥗</Text>
+							</View>
+							<Text className="text-lg font-bold text-white">Ingredients</Text>
+							<View className="ml-auto px-2 py-0.5 rounded-full bg-zinc-800">
+								<Text className="text-xs font-semibold text-zinc-400">
+									{meal.ingredients?.filter((i) => i.ingredient).length ?? 0}
 								</Text>
-							</Pressable>
+							</View>
 						</View>
-					)}
-				</View>
+						<IngredientsList ingredients={meal.ingredients} />
+					</View>
 
-				<IngredientsList ingredients={meal.ingredients} />
-
-				{/* Instructions Section */}
-				<View className="p-6 my-6 border-2 border-zinc-800 bg-zinc-900/50 rounded-3xl">
-					<Text className="mb-4 text-2xl font-bold text-white">
-						📝 Instructions
-					</Text>
-					<Text className="text-base leading-7 text-zinc-300">
-						{meal.strInstructions}
-					</Text>
-				</View>
-
-				{/* External Links */}
-				<View className="gap-3">
-					{meal.strYoutube && (
-						<Pressable
-							onPress={() => Linking.openURL(meal.strYoutube)}
-							className="flex-row items-center justify-center px-6 py-4 bg-red-600 rounded-2xl active:scale-[0.98]"
+					<View className="p-5 mb-6 border border-zinc-800 bg-zinc-900 rounded-3xl">
+						<View className="flex-row items-center mb-4">
+							<View className="items-center justify-center w-9 h-9 mr-3 rounded-xl bg-cyan-500/15">
+								<Text className="text-lg">📝</Text>
+							</View>
+							<Text className="text-lg font-bold text-white">Instructions</Text>
+						</View>
+						<Text
+							className="text-sm leading-7 text-zinc-300"
+							style={{ lineHeight: 26 }}
 						>
-							<Text className="mr-2 text-xl">▶️</Text>
-							<Text className="text-lg font-bold text-white">
-								Watch on YouTube
-							</Text>
-						</Pressable>
-					)}
+							{meal.strInstructions}
+						</Text>
+					</View>
 
-					{meal.strSource && (
-						<Pressable
-							onPress={() => Linking.openURL(meal.strSource)}
-							className="flex-row items-center justify-center px-6 py-4 bg-blue-600 rounded-2xl active:scale-[0.98]"
-						>
-							<Text className="mr-2 text-xl">🌐</Text>
-							<Text className="text-lg font-bold text-white">
-								View Full Recipe
+					{(meal.strYoutube || meal.strSource) && (
+						<View className="gap-3">
+							<Text className="mb-1 text-xs font-semibold tracking-widest uppercase text-zinc-500">
+								More Resources
 							</Text>
-						</Pressable>
+
+							{meal.strYoutube && (
+								<Pressable
+									onPress={() => Linking.openURL(meal.strYoutube)}
+									className="flex-row items-center py-4 px-5 bg-red-600/15 border border-red-600/30 rounded-2xl active:scale-[0.98]"
+								>
+									<View className="items-center justify-center w-10 h-10 mr-4 rounded-xl bg-red-600">
+										<Text className="text-lg">▶️</Text>
+									</View>
+									<View className="flex-1">
+										<Text className="text-sm font-bold text-white">
+											Watch on YouTube
+										</Text>
+										<Text className="text-xs text-zinc-500">
+											Video recipe walkthrough
+										</Text>
+									</View>
+									<Text className="text-zinc-600">›</Text>
+								</Pressable>
+							)}
+
+							{meal.strSource && (
+								<Pressable
+									onPress={() => Linking.openURL(meal.strSource)}
+									className="flex-row items-center py-4 px-5 bg-blue-600/15 border border-blue-600/30 rounded-2xl active:scale-[0.98]"
+								>
+									<View className="items-center justify-center w-10 h-10 mr-4 rounded-xl bg-blue-600">
+										<Text className="text-lg">🌐</Text>
+									</View>
+									<View className="flex-1">
+										<Text className="text-sm font-bold text-white">
+											View Full Recipe
+										</Text>
+										<Text className="text-xs text-zinc-500">
+											Original source article
+										</Text>
+									</View>
+									<Text className="text-zinc-600">›</Text>
+								</Pressable>
+							)}
+						</View>
 					)}
 				</View>
 			</ScrollView>

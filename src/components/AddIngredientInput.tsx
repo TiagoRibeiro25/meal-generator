@@ -16,28 +16,38 @@ export function AddIngredientInput({
 	onRemove,
 }: Props) {
 	return (
-		<View className="flex-row items-center mb-2">
+		<View className="flex-row items-center gap-2 mb-3">
+			{/* Index badge */}
+			<View className="items-center justify-center w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+				<Text className="text-xs font-bold text-emerald-400">{index + 1}</Text>
+			</View>
+
+			{/* Ingredient input */}
 			<TextInput
 				value={ingredient}
 				onChangeText={(t) => onChange(index, t, measure)}
 				placeholder="Ingredient"
-				placeholderTextColor="#9ca3af"
-				className="flex-1 px-3 py-2 mr-2 text-white rounded bg-zinc-800"
+				placeholderTextColor="#52525b"
+				className="flex-1 px-3 py-3 text-sm text-white border-2 border-zinc-800 bg-zinc-900 rounded-xl"
 			/>
+
+			{/* Measure input */}
 			<TextInput
 				value={measure}
 				onChangeText={(t) => onChange(index, ingredient, t)}
-				placeholder="Measure"
-				placeholderTextColor="#9ca3af"
-				className="w-24 px-3 py-2 mr-2 text-white rounded bg-zinc-800"
+				placeholder="Amount"
+				placeholderTextColor="#52525b"
+				className="w-20 px-3 py-3 text-sm text-white border-2 border-zinc-800 bg-zinc-900 rounded-xl"
 			/>
+
+			{/* Remove button */}
 			<Pressable
 				onPress={() => onRemove(index)}
-				className="px-3 py-2 bg-red-500 rounded"
+				className="items-center justify-center w-9 h-9 rounded-xl bg-red-500/15 border border-red-500/30 active:scale-90"
 				accessibilityRole="button"
 				accessibilityLabel="Remove ingredient"
 			>
-				<Text className="font-bold text-white">Remove</Text>
+				<Text className="text-sm font-bold text-red-400">✕</Text>
 			</Pressable>
 		</View>
 	);
