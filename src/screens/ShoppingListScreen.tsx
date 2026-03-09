@@ -1,4 +1,4 @@
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useState } from "react";
 import {
 	Alert,
@@ -32,7 +32,6 @@ type Section = {
 };
 
 export function ShoppingListScreen() {
-	const navigation = useNavigation();
 	const [sections, setSections] = useState<Section[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showAddPanel, setShowAddPanel] = useState(false);

@@ -1,4 +1,4 @@
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useState } from "react";
 import {
 	Alert,
@@ -190,7 +190,6 @@ function DayCard({
 }
 
 export function MealPlannerScreen() {
-	const navigation = useNavigation();
 	const [plan, setPlan] = useState<WeeklyMealPlan | null>(null);
 	const [pickerTarget, setPickerTarget] = useState<PickerTarget>(null);
 	const [favourites, setFavourites] = useState<Meal[]>([]);

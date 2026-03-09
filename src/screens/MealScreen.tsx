@@ -49,9 +49,6 @@ type Props = {
 	route: { params: { meal: Meal } };
 };
 
-// ---------------------------------------------------------------------------
-// Servings scaler
-// ---------------------------------------------------------------------------
 function ServingsScaler({
 	servings,
 	onDecrement,
@@ -94,9 +91,6 @@ function ServingsScaler({
 	);
 }
 
-// ---------------------------------------------------------------------------
-// Add to Collection sheet
-// ---------------------------------------------------------------------------
 function AddToCollectionSheet({
 	visible,
 	meal,
@@ -272,9 +266,6 @@ function AddToCollectionSheet({
 	);
 }
 
-// ---------------------------------------------------------------------------
-// Main screen
-// ---------------------------------------------------------------------------
 export function MealScreen({ route }: Props) {
 	const { meal } = route.params;
 	const navigation = useNavigation();
