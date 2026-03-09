@@ -11,6 +11,9 @@ A mobile app built with **React Native + Expo + TypeScript** that lets you disco
 - 🔍 **Browse by Category** — Explore meals filtered by cuisine type.
 - 🌍 **Browse by Cuisine** — Filter meals by country/area using the tab switcher in the Browse screen.
 - 🔎 **Search Recipes** — Find any dish by name with live results.
+- 🥕 **Ingredient Search** — Browse and search the full ingredient list to discover meals that use a specific ingredient.
+- ⚖️ **Ingredient Scaler** — Adjust the serving size (1–10×) directly on the meal detail page and watch all ingredient quantities update in real time.
+- 🗂️➕ **Quick Add to Collection** — Add any meal to one of your collections directly from the meal detail page, without navigating away.
 - ❤️ **Favourites** — Save meals locally and access them anytime, even offline.
 - 🕐 **Recently Viewed** — Quick access to the last meals you opened.
 - 📅 **Meal Planner** — Assign breakfast, lunch, and dinner to each day of the week from your favourites.

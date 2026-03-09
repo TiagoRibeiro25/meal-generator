@@ -1,8 +1,9 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useCallback, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
+	BackButton,
 	CategoryFilter,
 	CategoryFilterSkeleton,
 	ErrorBanner,
@@ -16,21 +17,34 @@ import {
 	useCategories,
 	useMealsByArea,
 	useMealsByCategory,
+	useMealsByIngredient,
 	useNetworkStatus,
 } from "../hooks";
 import { RootStackParamList } from "../navigation/StackNavigator";
-import { fetchMealById } from "../services";
+import { fetchIngredients, fetchMealById } from "../services/mealService";
 import { Meal } from "../types/Meal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Filters">;
-type Tab = "category" | "area";
+type Tab = "category" | "area" | "ingredient";
 
 export function FilterScreen({ navigation }: Props) {
 	const isConnected = useNetworkStatus();
 	const [activeTab, setActiveTab] = useState<Tab>("category");
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 	const [selectedArea, setSelectedArea] = useState<string | null>(null);
+	const [selectedIngredient, setSelectedIngredient] = useState<string | null>(
+		null,
+	);
 	const [mealError, setMealError] = useState<string | null>(null);
+
+	// Ingredient search state
+	const [ingredientQuery, setIngredientQuery] = useState("");
+	const [allIngredients, setAllIngredients] = useState<string[]>([]);
+	const [filteredIngredients, setFilteredIngredients] = useState<string[]>([]);
+	const [loadingIngredients, setLoadingIngredients] = useState(false);
+	const [ingredientListError, setIngredientListError] = useState<string | null>(
+		null,
+	);
 
 	// Category data
 	const {
@@ -61,12 +75,47 @@ export function FilterScreen({ navigation }: Props) {
 		error: areaMealsError,
 	} = useMealsByArea(activeTab === "area" ? selectedArea : null);
 
-	const meals = activeTab === "category" ? categoryMeals : areaMeals;
-	const loadingMeals =
-		activeTab === "category" ? loadingCategoryMeals : loadingAreaMeals;
-	const mealsError =
-		activeTab === "category" ? categoryMealsError : areaMealsError;
-	const selected = activeTab === "category" ? selectedCategory : selectedArea;
+	const {
+		meals: ingredientMeals,
+		loading: loadingIngredientMeals,
+		error: ingredientMealsError,
+	} = useMealsByIngredient(
+		activeTab === "ingredient" ? selectedIngredient : null,
+	);
+
+	// Load all ingredients when ingredient tab is first opened
+	useEffect(() => {
+		if (activeTab !== "ingredient" || allIngredients.length > 0) return;
+
+		async function loadIngredients() {
+			setLoadingIngredients(true);
+			setIngredientListError(null);
+			try {
+				const list = await fetchIngredients();
+				const sorted = [...list].sort((a, b) => a.localeCompare(b));
+				setAllIngredients(sorted);
+				setFilteredIngredients(sorted);
+			} catch (e: any) {
+				setIngredientListError(e.message || "Failed to load ingredients");
+			} finally {
+				setLoadingIngredients(false);
+			}
+		}
+
+		loadIngredients();
+	}, [activeTab, allIngredients.length]);
+
+	// Filter ingredient list as user types
+	useEffect(() => {
+		if (!ingredientQuery.trim()) {
+			setFilteredIngredients(allIngredients);
+			return;
+		}
+		const q = ingredientQuery.toLowerCase();
+		setFilteredIngredients(
+			allIngredients.filter((ing) => ing.toLowerCase().includes(q)),
+		);
+	}, [ingredientQuery, allIngredients]);
 
 	const handleTabSwitch = useCallback((tab: Tab) => {
 		setActiveTab(tab);
@@ -97,7 +146,9 @@ export function FilterScreen({ navigation }: Props) {
 	const fatalError =
 		activeTab === "category"
 			? categoryError && !loadingCategories && categories.length === 0
-			: areaError && !loadingAreas && areas.length === 0;
+			: activeTab === "area"
+				? areaError && !loadingAreas && areas.length === 0
+				: false;
 
 	if (fatalError) {
 		return (
@@ -111,16 +162,53 @@ export function FilterScreen({ navigation }: Props) {
 		);
 	}
 
-	const hasResults = meals.length > 0 && !loadingMeals;
+	// Derive active-tab values
+	const meals =
+		activeTab === "category"
+			? categoryMeals
+			: activeTab === "area"
+				? areaMeals
+				: ingredientMeals;
+
+	const loadingMeals =
+		activeTab === "category"
+			? loadingCategoryMeals
+			: activeTab === "area"
+				? loadingAreaMeals
+				: loadingIngredientMeals;
+
+	const mealsError =
+		activeTab === "category"
+			? categoryMealsError
+			: activeTab === "area"
+				? areaMealsError
+				: ingredientMealsError;
+
+	const selected =
+		activeTab === "category"
+			? selectedCategory
+			: activeTab === "area"
+				? selectedArea
+				: selectedIngredient;
+
 	const loadingItems =
 		activeTab === "category" ? loadingCategories : loadingAreas;
 	const items = activeTab === "category" ? categories : areas;
+
+	const hasResults = meals.length > 0 && !loadingMeals;
+
+	const TAB_CONFIG: { id: Tab; icon: string; label: string }[] = [
+		{ id: "category", icon: "🍽️", label: "Category" },
+		{ id: "area", icon: "🌍", label: "Cuisine" },
+		{ id: "ingredient", icon: "🥕", label: "Ingredient" },
+	];
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
 			{isConnected === false && <OfflineIndicator />}
 
 			<View className="px-6 pt-8 pb-2 bg-zinc-950">
+				<BackButton />
 				<Text className="mb-0.5 text-sm font-semibold tracking-widest uppercase text-emerald-500">
 					Discover
 				</Text>
@@ -130,36 +218,38 @@ export function FilterScreen({ navigation }: Props) {
 				>
 					Browse{" "}
 					<Text className="text-emerald-400">
-						{activeTab === "category" ? "Categories" : "Cuisines"}
+						{activeTab === "category"
+							? "Categories"
+							: activeTab === "area"
+								? "Cuisines"
+								: "Ingredients"}
 					</Text>
 				</Text>
 
 				{/* Tab switcher */}
 				<View className="flex-row mt-4 p-1 rounded-2xl bg-zinc-900 border border-zinc-800">
-					{(["category", "area"] as Tab[]).map((tab) => (
+					{TAB_CONFIG.map((tab) => (
 						<Pressable
-							key={tab}
-							onPress={() => handleTabSwitch(tab)}
-							className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl gap-2 active:scale-[0.98] ${
-								activeTab === tab ? "bg-emerald-500" : ""
+							key={tab.id}
+							onPress={() => handleTabSwitch(tab.id)}
+							className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl gap-1.5 active:scale-[0.98] ${
+								activeTab === tab.id ? "bg-emerald-500" : ""
 							}`}
 						>
-							<Text className="text-base">
-								{tab === "category" ? "🍽️" : "🌍"}
-							</Text>
+							<Text className="text-sm">{tab.icon}</Text>
 							<Text
-								className={`text-sm font-bold ${
-									activeTab === tab ? "text-zinc-950" : "text-zinc-400"
+								className={`text-xs font-bold ${
+									activeTab === tab.id ? "text-zinc-950" : "text-zinc-400"
 								}`}
 							>
-								{tab === "category" ? "Category" : "Cuisine"}
+								{tab.label}
 							</Text>
 						</Pressable>
 					))}
 				</View>
 
-				{/* Selected filter badge */}
-				{selected && (
+				{/* Selected filter badge (category / area) */}
+				{activeTab !== "ingredient" && selected && (
 					<View className="flex-row items-center mt-3">
 						<View className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
 							<Text className="text-sm font-semibold text-emerald-400">
@@ -185,7 +275,53 @@ export function FilterScreen({ navigation }: Props) {
 					</View>
 				)}
 
-				{!loadingItems && !selected && (
+				{/* Ingredient search bar */}
+				{activeTab === "ingredient" && !selectedIngredient && (
+					<View className="flex-row items-center mt-3 px-4 border-2 border-zinc-700 bg-zinc-900 rounded-2xl focus-within:border-emerald-500">
+						<Text className="mr-2 text-base">🔍</Text>
+						<TextInput
+							className="flex-1 py-3 text-sm text-white"
+							placeholder="Search ingredients…"
+							placeholderTextColor="#52525b"
+							value={ingredientQuery}
+							onChangeText={setIngredientQuery}
+							autoCorrect={false}
+							autoCapitalize="none"
+						/>
+						{ingredientQuery.length > 0 && (
+							<Pressable
+								onPress={() => setIngredientQuery("")}
+								className="items-center justify-center w-6 h-6 rounded-full bg-zinc-700 active:bg-zinc-600"
+							>
+								<Text className="text-xs font-bold text-zinc-300">✕</Text>
+							</Pressable>
+						)}
+					</View>
+				)}
+
+				{/* Selected ingredient badge */}
+				{activeTab === "ingredient" && selectedIngredient && (
+					<View className="flex-row items-center mt-3">
+						<View className="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30">
+							<Text className="text-sm font-semibold text-orange-400">
+								🥕 {selectedIngredient}
+							</Text>
+						</View>
+						{!loadingMeals && hasResults && (
+							<Text className="ml-3 text-sm text-zinc-500">
+								{meals.length} meals found
+							</Text>
+						)}
+						<Pressable
+							onPress={() => setSelectedIngredient(null)}
+							className="ml-auto items-center justify-center w-7 h-7 rounded-full bg-zinc-800 active:bg-zinc-700"
+						>
+							<Text className="text-xs font-bold text-zinc-400">✕</Text>
+						</Pressable>
+					</View>
+				)}
+
+				{activeTab !== "ingredient" && !loadingItems && !selected && (
 					<Text className="mt-2 text-sm text-zinc-500">
 						{activeTab === "category"
 							? "Tap a category to explore meals"
@@ -194,31 +330,98 @@ export function FilterScreen({ navigation }: Props) {
 				)}
 			</View>
 
+			{/* Error banners */}
 			{categoryError && activeTab === "category" && (
 				<ErrorBanner message={categoryError} />
 			)}
 			{areaError && activeTab === "area" && <ErrorBanner message={areaError} />}
+			{ingredientListError && activeTab === "ingredient" && (
+				<ErrorBanner message={ingredientListError} />
+			)}
 			{(mealError || mealsError) && (
 				<ErrorBanner message={mealError || mealsError!} />
 			)}
 
-			<View className="bg-zinc-950">
-				{loadingItems ? (
-					<CategoryFilterSkeleton vertical={!selected} />
-				) : (
-					<CategoryFilter
-						categories={items}
-						selectedCategory={selected}
-						onSelect={
-							activeTab === "category" ? setSelectedCategory : setSelectedArea
-						}
-						vertical={!selected}
-					/>
-				)}
-			</View>
+			{/* Category / Area filter chips */}
+			{activeTab !== "ingredient" && (
+				<View className="bg-zinc-950">
+					{loadingItems ? (
+						<CategoryFilterSkeleton vertical={!selected} />
+					) : (
+						<CategoryFilter
+							categories={items}
+							selectedCategory={selected}
+							onSelect={
+								activeTab === "category" ? setSelectedCategory : setSelectedArea
+							}
+							vertical={!selected}
+						/>
+					)}
+				</View>
+			)}
 
-			{selected && <View className="h-px mx-6 bg-zinc-800" />}
+			{activeTab !== "ingredient" && selected && (
+				<View className="h-px mx-6 bg-zinc-800" />
+			)}
 
+			{/* Ingredient picker list */}
+			{activeTab === "ingredient" && !selectedIngredient && (
+				<>
+					{loadingIngredients ? (
+						<View className="px-6 pt-4">
+							{[...Array(6)].map((_, i) => (
+								<View
+									key={i}
+									className="h-12 mb-2 rounded-2xl bg-zinc-800/60"
+									style={{ opacity: 1 - i * 0.12 }}
+								/>
+							))}
+						</View>
+					) : (
+						<FlatList
+							data={filteredIngredients}
+							keyExtractor={(item) => item}
+							contentContainerStyle={{
+								paddingHorizontal: 24,
+								paddingTop: 12,
+								paddingBottom: 48,
+							}}
+							showsVerticalScrollIndicator={false}
+							keyboardShouldPersistTaps="handled"
+							ListEmptyComponent={() => (
+								<View className="items-center justify-center py-16 px-8">
+									<Text className="text-4xl mb-3">🥕</Text>
+									<Text className="text-base font-bold text-center text-white mb-1">
+										No ingredients found
+									</Text>
+									<Text className="text-sm text-center text-zinc-500">
+										Try a different search term.
+									</Text>
+								</View>
+							)}
+							renderItem={({ item }) => (
+								<Pressable
+									onPress={() => {
+										setSelectedIngredient(item);
+										setIngredientQuery("");
+									}}
+									className="flex-row items-center px-4 py-3 mb-2 border border-zinc-800 bg-zinc-900 rounded-2xl active:scale-[0.98] active:border-orange-500/40"
+								>
+									<View className="items-center justify-center w-8 h-8 mr-3 rounded-xl bg-orange-500/10 border border-orange-500/20">
+										<Text className="text-base">🥕</Text>
+									</View>
+									<Text className="flex-1 text-sm font-semibold text-white">
+										{item}
+									</Text>
+									<Text className="text-zinc-600 text-lg">›</Text>
+								</Pressable>
+							)}
+						/>
+					)}
+				</>
+			)}
+
+			{/* Meal loading skeletons */}
 			{loadingMeals && (
 				<View className="px-6 pt-4">
 					{[...Array(4)].map((_, i) => (
@@ -227,6 +430,7 @@ export function FilterScreen({ navigation }: Props) {
 				</View>
 			)}
 
+			{/* Meal results */}
 			{hasResults && (
 				<FlatList
 					data={meals}
@@ -245,6 +449,7 @@ export function FilterScreen({ navigation }: Props) {
 				/>
 			)}
 
+			{/* Empty state after selection */}
 			{selected && !loadingMeals && meals.length === 0 && !mealsError && (
 				<View className="items-center justify-center flex-1 px-6">
 					<Text className="mb-2 text-5xl">🍽️</Text>
@@ -253,7 +458,11 @@ export function FilterScreen({ navigation }: Props) {
 					</Text>
 					<Text className="mt-1 text-sm text-center text-zinc-500">
 						Try selecting a different{" "}
-						{activeTab === "category" ? "category" : "cuisine"}
+						{activeTab === "category"
+							? "category"
+							: activeTab === "area"
+								? "cuisine"
+								: "ingredient"}
 					</Text>
 				</View>
 			)}

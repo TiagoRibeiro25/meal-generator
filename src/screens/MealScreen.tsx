@@ -2,9 +2,11 @@ import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	Alert,
+	FlatList,
 	Image,
 	Keyboard,
 	Linking,
+	Modal,
 	Pressable,
 	ScrollView,
 	Text,
@@ -34,6 +36,12 @@ import {
 	isMealInShoppingList,
 	removeMealFromShoppingList,
 } from "../services/shoppingListService";
+import {
+	Collection,
+	addMealToCollection,
+	getCollections,
+	getCollectionsForMeal,
+} from "../services/collectionsService";
 import { Meal } from "../types/Meal";
 import { shareMeal } from "../utils/share";
 
@@ -41,6 +49,232 @@ type Props = {
 	route: { params: { meal: Meal } };
 };
 
+// ---------------------------------------------------------------------------
+// Servings scaler
+// ---------------------------------------------------------------------------
+function ServingsScaler({
+	servings,
+	onDecrement,
+	onIncrement,
+}: {
+	servings: number;
+	onDecrement: () => void;
+	onIncrement: () => void;
+}) {
+	return (
+		<View className="flex-row items-center ml-auto gap-1">
+			<Pressable
+				onPress={onDecrement}
+				disabled={servings <= 1}
+				className={`items-center justify-center w-8 h-8 rounded-xl border active:scale-[0.95] ${
+					servings <= 1
+						? "border-zinc-800 bg-zinc-900 opacity-40"
+						: "border-zinc-700 bg-zinc-800"
+				}`}
+			>
+				<Text className="text-base font-black text-zinc-300">−</Text>
+			</Pressable>
+
+			<View className="items-center justify-center w-10 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30">
+				<Text className="text-sm font-black text-emerald-400">{servings}×</Text>
+			</View>
+
+			<Pressable
+				onPress={onIncrement}
+				disabled={servings >= 10}
+				className={`items-center justify-center w-8 h-8 rounded-xl border active:scale-[0.95] ${
+					servings >= 10
+						? "border-zinc-800 bg-zinc-900 opacity-40"
+						: "border-zinc-700 bg-zinc-800"
+				}`}
+			>
+				<Text className="text-base font-black text-zinc-300">+</Text>
+			</Pressable>
+		</View>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Add to Collection sheet
+// ---------------------------------------------------------------------------
+function AddToCollectionSheet({
+	visible,
+	meal,
+	onClose,
+}: {
+	visible: boolean;
+	meal: Meal;
+	onClose: () => void;
+}) {
+	const [collections, setCollections] = useState<Collection[]>([]);
+	const [memberIds, setMemberIds] = useState<Set<string>>(new Set());
+	const [loading, setLoading] = useState(false);
+	const [adding, setAdding] = useState<string | null>(null);
+
+	const load = useCallback(async () => {
+		setLoading(true);
+		try {
+			const [all, withMeal] = await Promise.all([
+				getCollections(),
+				getCollectionsForMeal(meal.idMeal),
+			]);
+			setCollections(all);
+			setMemberIds(new Set(withMeal.map((c) => c.id)));
+		} catch (e) {
+			console.error("Failed to load collections for sheet", e);
+		} finally {
+			setLoading(false);
+		}
+	}, [meal.idMeal]);
+
+	useEffect(() => {
+		if (visible) load();
+	}, [visible, load]);
+
+	const handleToggle = useCallback(
+		async (collection: Collection) => {
+			if (adding) return;
+			setAdding(collection.id);
+			try {
+				await addMealToCollection(collection.id, meal);
+				setMemberIds((prev) => new Set([...prev, collection.id]));
+			} catch (e) {
+				console.error("Failed to add to collection", e);
+			} finally {
+				setAdding(null);
+			}
+		},
+		[meal, adding],
+	);
+
+	return (
+		<Modal
+			visible={visible}
+			animationType="slide"
+			presentationStyle="pageSheet"
+			onRequestClose={onClose}
+		>
+			<SafeAreaView className="flex-1 bg-zinc-950">
+				{/* Header */}
+				<View className="px-6 pt-6 pb-4">
+					<View className="flex-row items-center justify-between mb-1">
+						<Text className="text-sm font-semibold tracking-widest uppercase text-emerald-500">
+							Save to
+						</Text>
+						<Pressable
+							onPress={onClose}
+							className="items-center justify-center w-9 h-9 rounded-full bg-zinc-800 active:bg-zinc-700"
+						>
+							<Text className="text-base font-bold text-zinc-300">✕</Text>
+						</Pressable>
+					</View>
+					<Text
+						className="text-3xl font-black text-white"
+						style={{ letterSpacing: -0.5 }}
+					>
+						Add to Collection
+					</Text>
+					<Text className="mt-1 text-sm text-zinc-500" numberOfLines={1}>
+						{meal.strMeal}
+					</Text>
+				</View>
+
+				<View className="h-px mx-6 mb-3 bg-zinc-800" />
+
+				{loading ? (
+					<View className="flex-1 items-center justify-center">
+						<Text className="text-zinc-500">Loading collections…</Text>
+					</View>
+				) : collections.length === 0 ? (
+					<View className="flex-1 items-center justify-center px-8">
+						<Text className="text-5xl mb-3">🗂️</Text>
+						<Text className="text-base font-bold text-center text-white mb-1">
+							No collections yet
+						</Text>
+						<Text className="text-sm text-center text-zinc-500 leading-6">
+							Head to the Collections screen to create your first list, then
+							come back here to save this meal.
+						</Text>
+						<Pressable
+							onPress={onClose}
+							className="mt-6 px-6 py-3 bg-zinc-800 rounded-2xl active:scale-[0.98]"
+						>
+							<Text className="text-sm font-bold text-white">Dismiss</Text>
+						</Pressable>
+					</View>
+				) : (
+					<FlatList
+						data={collections}
+						keyExtractor={(item) => item.id}
+						contentContainerStyle={{
+							paddingHorizontal: 24,
+							paddingBottom: 48,
+						}}
+						showsVerticalScrollIndicator={false}
+						renderItem={({ item }) => {
+							const isMember = memberIds.has(item.id);
+							const isAdding = adding === item.id;
+							return (
+								<Pressable
+									onPress={() => !isMember && handleToggle(item)}
+									className={`flex-row items-center p-4 mb-3 border rounded-2xl active:scale-[0.98] ${
+										isMember
+											? "border-emerald-500/40 bg-emerald-500/8"
+											: "border-zinc-800 bg-zinc-900"
+									}`}
+								>
+									{/* Emoji icon */}
+									<View className="items-center justify-center w-11 h-11 mr-4 rounded-xl bg-zinc-800">
+										<Text className="text-2xl">{item.emoji}</Text>
+									</View>
+
+									{/* Name + count */}
+									<View className="flex-1">
+										<Text
+											className="text-base font-bold text-white"
+											numberOfLines={1}
+										>
+											{item.name}
+										</Text>
+										<Text className="text-xs text-zinc-500 mt-0.5">
+											{item.meals.length} meal
+											{item.meals.length !== 1 ? "s" : ""}
+										</Text>
+									</View>
+
+									{/* Status badge */}
+									{isMember ? (
+										<View className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
+											<Text className="text-xs font-bold text-emerald-400">
+												✓ Added
+											</Text>
+										</View>
+									) : isAdding ? (
+										<View className="px-3 py-1 rounded-full bg-zinc-700">
+											<Text className="text-xs font-semibold text-zinc-400">
+												…
+											</Text>
+										</View>
+									) : (
+										<View className="px-3 py-1 rounded-full bg-zinc-700">
+											<Text className="text-xs font-semibold text-zinc-300">
+												+ Add
+											</Text>
+										</View>
+									)}
+								</Pressable>
+							);
+						}}
+					/>
+				)}
+			</SafeAreaView>
+		</Modal>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Main screen
+// ---------------------------------------------------------------------------
 export function MealScreen({ route }: Props) {
 	const { meal } = route.params;
 	const navigation = useNavigation();
@@ -53,6 +287,12 @@ export function MealScreen({ route }: Props) {
 	const [editingNote, setEditingNote] = useState(false);
 	const [noteDraft, setNoteDraft] = useState("");
 	const noteInputRef = useRef<TextInput>(null);
+
+	// Servings scaler (1 = no scaling)
+	const [servings, setServings] = useState(1);
+
+	// Add to Collection sheet
+	const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
 
 	useEffect(() => {
 		checkFavourite();
@@ -175,6 +415,12 @@ export function MealScreen({ route }: Props) {
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950" edges={["top"]}>
+			<AddToCollectionSheet
+				visible={collectionSheetVisible}
+				meal={meal}
+				onClose={() => setCollectionSheetVisible(false)}
+			/>
+
 			<ScrollView
 				contentContainerStyle={{ paddingBottom: 48 }}
 				showsVerticalScrollIndicator={false}
@@ -298,6 +544,17 @@ export function MealScreen({ route }: Props) {
 						)}
 					</View>
 
+					{/* Add to Collection button */}
+					<Pressable
+						onPress={() => setCollectionSheetVisible(true)}
+						className="flex-row items-center justify-center py-3 mb-3 border-2 border-zinc-700 rounded-2xl bg-zinc-900 active:scale-[0.98]"
+					>
+						<Text className="mr-2 text-lg">🗂️</Text>
+						<Text className="text-sm font-bold text-white">
+							Add to Collection
+						</Text>
+					</Pressable>
+
 					{/* Edit / Delete row (custom meals only) */}
 					{meal.isLocal && (
 						<View className="flex-row gap-3 mb-6">
@@ -324,18 +581,36 @@ export function MealScreen({ route }: Props) {
 
 					{/* Ingredients */}
 					<View className="p-5 mb-4 border border-zinc-800 bg-zinc-900 rounded-3xl">
+						{/* Section header with servings scaler */}
 						<View className="flex-row items-center mb-4">
 							<View className="items-center justify-center w-9 h-9 mr-3 rounded-xl bg-emerald-500/15">
 								<Text className="text-lg">🥗</Text>
 							</View>
-							<Text className="text-lg font-bold text-white">Ingredients</Text>
-							<View className="ml-auto px-2 py-0.5 rounded-full bg-zinc-800">
+							<View>
+								<Text className="text-lg font-bold text-white">
+									Ingredients
+								</Text>
+								{servings > 1 && (
+									<Text className="text-xs text-emerald-400 mt-0.5">
+										Scaled for {servings} servings
+									</Text>
+								)}
+							</View>
+							<View className="ml-auto px-2 py-0.5 rounded-full bg-zinc-800 mr-2">
 								<Text className="text-xs font-semibold text-zinc-400">
 									{meal.ingredients?.filter((i) => i.ingredient).length ?? 0}
 								</Text>
 							</View>
+							<ServingsScaler
+								servings={servings}
+								onDecrement={() => setServings((s) => Math.max(1, s - 1))}
+								onIncrement={() => setServings((s) => Math.min(10, s + 1))}
+							/>
 						</View>
-						<IngredientsList ingredients={meal.ingredients} />
+						<IngredientsList
+							ingredients={meal.ingredients}
+							servings={servings}
+						/>
 					</View>
 
 					{/* Personal Notes */}

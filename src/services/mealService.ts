@@ -157,3 +157,31 @@ export async function fetchAreas(): Promise<string[]> {
 		await fetchApi<ApiResponse<{ strArea: string }>>("/list.php?a=list");
 	return data.meals?.map((a) => a.strArea) || [];
 }
+
+export async function fetchIngredients(): Promise<string[]> {
+	const data =
+		await fetchApi<ApiResponse<{ strIngredient: string }>>("/list.php?i=list");
+	return data.meals?.map((i) => i.strIngredient) || [];
+}
+
+export async function fetchMealsByIngredient(
+	ingredient: string,
+): Promise<Meal[]> {
+	const data = await fetchApi<ApiResponse<ApiMealSummary>>(
+		`/filter.php?i=${encodeURIComponent(ingredient)}`,
+	);
+
+	return (
+		data.meals?.map((m) => ({
+			idMeal: m.idMeal,
+			strMeal: m.strMeal,
+			strCategory: "",
+			strArea: "",
+			strInstructions: "",
+			strMealThumb: m.strMealThumb,
+			strYoutube: "",
+			strSource: "",
+			ingredients: [],
+		})) || []
+	);
+}

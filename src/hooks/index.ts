@@ -5,4 +5,5 @@ export { useFavourites } from "./useFavourites";
 export { useLoadingState } from "./useLoadingState";
 export { useMealsByArea } from "./useMealsByArea";
 export { useMealsByCategory } from "./useMealsByCategory";
+export { useMealsByIngredient } from "./useMealsByIngredient";
 export { useNetworkStatus } from "./useNetworkStatus";
