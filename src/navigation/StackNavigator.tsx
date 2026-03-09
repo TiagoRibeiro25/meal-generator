@@ -4,6 +4,7 @@ import { FavouritesScreen } from "../screens/FavouritesScreen";
 import { FilterScreen } from "../screens/FilterScreen";
 import { HomeScreen } from "../screens/HomeScreen";
 import { MealPlannerScreen } from "../screens/MealPlannerScreen";
+import { StatsScreen } from "../screens/StatsScreen";
 import { MealScreen } from "../screens/MealScreen";
 import { MyMealsScreen } from "../screens/MyMealsScreen";
 import { SearchScreen } from "../screens/SearchScreen";
@@ -20,6 +21,7 @@ export type RootStackParamList = {
 	MyMeals: undefined;
 	ShoppingList: undefined;
 	MealPlanner: undefined;
+	Stats: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -36,6 +38,7 @@ export function StackNavigator() {
 			<Stack.Screen name="MyMeals" component={MyMealsScreen} />
 			<Stack.Screen name="ShoppingList" component={ShoppingListScreen} />
 			<Stack.Screen name="MealPlanner" component={MealPlannerScreen} />
+			<Stack.Screen name="Stats" component={StatsScreen} />
 		</Stack.Navigator>
 	);
 }

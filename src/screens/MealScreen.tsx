@@ -1,12 +1,14 @@
 import { useNavigation } from "@react-navigation/native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	Alert,
 	Image,
+	Keyboard,
 	Linking,
 	Pressable,
 	ScrollView,
 	Text,
+	TextInput,
 	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -26,6 +28,7 @@ import {
 	removeRecentMeal,
 	saveFavourite,
 } from "../services";
+import { deleteNote, getNote, saveNote } from "../services/notesService";
 import {
 	addMealToShoppingList,
 	isMealInShoppingList,
@@ -41,15 +44,21 @@ type Props = {
 export function MealScreen({ route }: Props) {
 	const { meal } = route.params;
 	const navigation = useNavigation();
+
 	const [isFav, setIsFav] = useState(false);
 	const [isCached, setIsCached] = useState(false);
 	const [viewerVisible, setViewerVisible] = useState(false);
 	const [inShoppingList, setInShoppingList] = useState(false);
+	const [note, setNote] = useState("");
+	const [editingNote, setEditingNote] = useState(false);
+	const [noteDraft, setNoteDraft] = useState("");
+	const noteInputRef = useRef<TextInput>(null);
 
 	useEffect(() => {
 		checkFavourite();
 		checkCache();
 		checkShoppingList();
+		loadNote();
 		cacheMeal(meal);
 		addRecentMeal(meal.idMeal);
 	}, [meal.idMeal]);
@@ -67,6 +76,11 @@ export function MealScreen({ route }: Props) {
 	const checkShoppingList = useCallback(async () => {
 		const inList = await isMealInShoppingList(meal.idMeal);
 		setInShoppingList(inList);
+	}, [meal.idMeal]);
+
+	const loadNote = useCallback(async () => {
+		const saved = await getNote(meal.idMeal);
+		setNote(saved);
 	}, [meal.idMeal]);
 
 	const toggleFavourite = useCallback(async () => {
@@ -101,6 +115,40 @@ export function MealScreen({ route }: Props) {
 		}
 	}, [inShoppingList, meal]);
 
+	const handleEditNote = useCallback(() => {
+		setNoteDraft(note);
+		setEditingNote(true);
+		setTimeout(() => noteInputRef.current?.focus(), 50);
+	}, [note]);
+
+	const handleSaveNote = useCallback(async () => {
+		Keyboard.dismiss();
+		await saveNote(meal.idMeal, noteDraft);
+		setNote(noteDraft.trim());
+		setEditingNote(false);
+	}, [meal.idMeal, noteDraft]);
+
+	const handleCancelNote = useCallback(() => {
+		Keyboard.dismiss();
+		setNoteDraft("");
+		setEditingNote(false);
+	}, []);
+
+	const handleDeleteNote = useCallback(() => {
+		Alert.alert("Delete note", "Remove your personal note for this meal?", [
+			{ text: "Cancel", style: "cancel" },
+			{
+				text: "Delete",
+				style: "destructive",
+				onPress: async () => {
+					await deleteNote(meal.idMeal);
+					setNote("");
+					setEditingNote(false);
+				},
+			},
+		]);
+	}, [meal.idMeal]);
+
 	const handleDelete = useCallback(() => {
 		Alert.alert(
 			"Delete meal",
@@ -131,6 +179,7 @@ export function MealScreen({ route }: Props) {
 				contentContainerStyle={{ paddingBottom: 48 }}
 				showsVerticalScrollIndicator={false}
 			>
+				{/* Hero image */}
 				<View className="relative">
 					<Pressable onPress={() => setViewerVisible(true)}>
 						<Image
@@ -163,6 +212,7 @@ export function MealScreen({ route }: Props) {
 				/>
 
 				<View className="px-5">
+					{/* Title & tags */}
 					<View className="pt-5 pb-4">
 						<Text
 							className="mb-3 text-3xl font-black leading-tight text-white"
@@ -200,6 +250,7 @@ export function MealScreen({ route }: Props) {
 
 					<View className="h-px mb-5 bg-zinc-800" />
 
+					{/* Favourite button */}
 					<Pressable
 						onPress={toggleFavourite}
 						className={`flex-row items-center justify-center py-4 mb-3 rounded-2xl active:scale-[0.98] ${
@@ -216,6 +267,7 @@ export function MealScreen({ route }: Props) {
 						</Text>
 					</Pressable>
 
+					{/* Shopping list + Share row */}
 					<View className="flex-row gap-3 mb-3">
 						<Pressable
 							onPress={toggleShoppingList}
@@ -246,33 +298,31 @@ export function MealScreen({ route }: Props) {
 						)}
 					</View>
 
-					<View className="flex-row gap-3 mb-6">
-						{meal.isLocal && (
-							<>
-								<Pressable
-									onPress={() => {
-										// @ts-ignore
-										navigation.navigate("AddMeal", { meal });
-									}}
-									className="flex-row flex-1 items-center justify-center py-3 bg-emerald-600/20 border-2 border-emerald-600/40 rounded-2xl active:scale-[0.98]"
-								>
-									<Text className="mr-2 text-lg">✏️</Text>
-									<Text className="text-sm font-bold text-emerald-400">
-										Edit
-									</Text>
-								</Pressable>
+					{/* Edit / Delete row (custom meals only) */}
+					{meal.isLocal && (
+						<View className="flex-row gap-3 mb-6">
+							<Pressable
+								onPress={() => {
+									// @ts-ignore
+									navigation.navigate("AddMeal", { meal });
+								}}
+								className="flex-row flex-1 items-center justify-center py-3 bg-emerald-600/20 border-2 border-emerald-600/40 rounded-2xl active:scale-[0.98]"
+							>
+								<Text className="mr-2 text-lg">✏️</Text>
+								<Text className="text-sm font-bold text-emerald-400">Edit</Text>
+							</Pressable>
 
-								<Pressable
-									onPress={handleDelete}
-									className="flex-row flex-1 items-center justify-center py-3 bg-red-600/20 border-2 border-red-600/40 rounded-2xl active:scale-[0.98]"
-								>
-									<Text className="mr-2 text-lg">🗑️</Text>
-									<Text className="text-sm font-bold text-red-400">Delete</Text>
-								</Pressable>
-							</>
-						)}
-					</View>
+							<Pressable
+								onPress={handleDelete}
+								className="flex-row flex-1 items-center justify-center py-3 bg-red-600/20 border-2 border-red-600/40 rounded-2xl active:scale-[0.98]"
+							>
+								<Text className="mr-2 text-lg">🗑️</Text>
+								<Text className="text-sm font-bold text-red-400">Delete</Text>
+							</Pressable>
+						</View>
+					)}
 
+					{/* Ingredients */}
 					<View className="p-5 mb-4 border border-zinc-800 bg-zinc-900 rounded-3xl">
 						<View className="flex-row items-center mb-4">
 							<View className="items-center justify-center w-9 h-9 mr-3 rounded-xl bg-emerald-500/15">
@@ -288,6 +338,83 @@ export function MealScreen({ route }: Props) {
 						<IngredientsList ingredients={meal.ingredients} />
 					</View>
 
+					{/* Personal Notes */}
+					<View className="p-5 mb-4 border border-zinc-800 bg-zinc-900 rounded-3xl">
+						<View className="flex-row items-center mb-4">
+							<View className="items-center justify-center w-9 h-9 mr-3 rounded-xl bg-amber-500/15">
+								<Text className="text-lg">🗒️</Text>
+							</View>
+							<Text className="text-lg font-bold text-white">My Notes</Text>
+							{note.length > 0 && !editingNote && (
+								<View className="flex-row ml-auto gap-2">
+									<Pressable
+										onPress={handleEditNote}
+										className="px-3 py-1 rounded-lg bg-zinc-800 active:bg-zinc-700"
+									>
+										<Text className="text-xs font-semibold text-zinc-300">
+											Edit
+										</Text>
+									</Pressable>
+									<Pressable
+										onPress={handleDeleteNote}
+										className="px-3 py-1 rounded-lg bg-red-900/25 border border-red-800/30 active:scale-[0.97]"
+									>
+										<Text className="text-xs font-semibold text-red-400">
+											Delete
+										</Text>
+									</Pressable>
+								</View>
+							)}
+						</View>
+
+						{editingNote ? (
+							<View>
+								<TextInput
+									ref={noteInputRef}
+									value={noteDraft}
+									onChangeText={setNoteDraft}
+									placeholder="Write a personal note about this meal…"
+									placeholderTextColor="#52525b"
+									multiline
+									textAlignVertical="top"
+									className="w-full px-4 py-3 text-sm text-white border-2 border-zinc-700 bg-zinc-800 rounded-2xl"
+									style={{ lineHeight: 22, minHeight: 100 }}
+								/>
+								<View className="flex-row gap-3 mt-3">
+									<Pressable
+										onPress={handleSaveNote}
+										className="flex-1 items-center justify-center py-3 bg-amber-500 rounded-2xl active:scale-[0.98]"
+									>
+										<Text className="text-sm font-bold text-zinc-950">
+											Save Note
+										</Text>
+									</Pressable>
+									<Pressable
+										onPress={handleCancelNote}
+										className="flex-1 items-center justify-center py-3 border border-zinc-700 bg-zinc-900 rounded-2xl active:scale-[0.98]"
+									>
+										<Text className="text-sm font-bold text-zinc-400">
+											Cancel
+										</Text>
+									</Pressable>
+								</View>
+							</View>
+						) : note.length > 0 ? (
+							<Text className="text-sm leading-6 text-zinc-300">{note}</Text>
+						) : (
+							<Pressable
+								onPress={handleEditNote}
+								className="flex-row items-center justify-center py-4 border-2 border-dashed border-zinc-700 rounded-2xl active:border-amber-500/50"
+							>
+								<Text className="mr-2 text-base">✏️</Text>
+								<Text className="text-sm font-semibold text-zinc-500">
+									Add a personal note…
+								</Text>
+							</Pressable>
+						)}
+					</View>
+
+					{/* Instructions */}
 					<View className="p-5 mb-6 border border-zinc-800 bg-zinc-900 rounded-3xl">
 						<View className="flex-row items-center mb-4">
 							<View className="items-center justify-center w-9 h-9 mr-3 rounded-xl bg-cyan-500/15">
@@ -303,6 +430,7 @@ export function MealScreen({ route }: Props) {
 						</Text>
 					</View>
 
+					{/* More Resources */}
 					{(meal.strYoutube || meal.strSource) && (
 						<View className="gap-3">
 							<Text className="mb-1 text-xs font-semibold tracking-widest uppercase text-zinc-500">

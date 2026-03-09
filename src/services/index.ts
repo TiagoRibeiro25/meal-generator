@@ -6,3 +6,4 @@ export * from "./mealService";
 export * from "./mealPlanService";
 export * from "./recentService";
 export * from "./shoppingListService";
+export * from "./notesService";

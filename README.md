@@ -9,11 +9,14 @@ A mobile app built with **React Native + Expo + TypeScript** that lets you disco
 
 - 🎲 **Surprise Me!** — Fetch a completely random meal with one tap from the home screen.
 - 🔍 **Browse by Category** — Explore meals filtered by cuisine type.
+- 🌍 **Browse by Cuisine** — Filter meals by country/area using the tab switcher in the Browse screen.
 - 🔎 **Search Recipes** — Find any dish by name with live results.
 - ❤️ **Favourites** — Save meals locally and access them anytime, even offline.
 - 🕐 **Recently Viewed** — Quick access to the last meals you opened.
 - 📅 **Meal Planner** — Assign breakfast, lunch, and dinner to each day of the week from your favourites.
 - 🛒 **Shopping List** — Auto-generate a grocery list from your saved meals; check off items as you shop.
+- 🗒️ **Personal Notes** — Write and save a private note on any meal, editable and deletable at any time.
+- 📊 **Your Kitchen** — Stats overview showing favourites, custom meals, planner progress, shopping list completion, notes, and offline cache.
 - 📚 **Custom Meals** — Create, edit, and delete your own recipes with photo support.
 - 📶 **Offline Support** — Cached meals are available without a network connection.
 - 💀 **Skeleton loaders** — Smooth loading placeholders throughout the app.
