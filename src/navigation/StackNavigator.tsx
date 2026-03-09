@@ -3,9 +3,11 @@ import { AddMealScreen } from "../screens/AddMealScreen";
 import { FavouritesScreen } from "../screens/FavouritesScreen";
 import { FilterScreen } from "../screens/FilterScreen";
 import { HomeScreen } from "../screens/HomeScreen";
+import { MealPlannerScreen } from "../screens/MealPlannerScreen";
 import { MealScreen } from "../screens/MealScreen";
 import { MyMealsScreen } from "../screens/MyMealsScreen";
 import { SearchScreen } from "../screens/SearchScreen";
+import { ShoppingListScreen } from "../screens/ShoppingListScreen";
 import { Meal } from "../types/Meal";
 
 export type RootStackParamList = {
@@ -16,6 +18,8 @@ export type RootStackParamList = {
 	Favourites: undefined;
 	AddMeal: { meal?: Meal } | undefined;
 	MyMeals: undefined;
+	ShoppingList: undefined;
+	MealPlanner: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -30,6 +34,8 @@ export function StackNavigator() {
 			<Stack.Screen name="Favourites" component={FavouritesScreen} />
 			<Stack.Screen name="AddMeal" component={AddMealScreen} />
 			<Stack.Screen name="MyMeals" component={MyMealsScreen} />
+			<Stack.Screen name="ShoppingList" component={ShoppingListScreen} />
+			<Stack.Screen name="MealPlanner" component={MealPlannerScreen} />
 		</Stack.Navigator>
 	);
 }

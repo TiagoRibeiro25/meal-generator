@@ -1,9 +1,17 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ScrollView, Text, View, Pressable } from "react-native";
+import { useCallback, useState } from "react";
+import {
+	ActivityIndicator,
+	Pressable,
+	ScrollView,
+	Text,
+	View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { OfflineIndicator, RecentlyViewed } from "../components";
 import { useNetworkStatus } from "../hooks";
 import { RootStackParamList } from "../navigation/StackNavigator";
+import { fetchRandomMeal } from "../services/mealService";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
@@ -37,6 +45,22 @@ const NAV_TILES: NavTile[] = [
 		primary: true,
 	},
 	{
+		icon: "📅",
+		label: "Meal Planner",
+		description: "Plan your week ahead",
+		screen: "MealPlanner",
+		accent: "bg-zinc-800",
+		accentText: "text-white",
+	},
+	{
+		icon: "🛒",
+		label: "Shopping List",
+		description: "Ingredients from your meals",
+		screen: "ShoppingList",
+		accent: "bg-zinc-800",
+		accentText: "text-white",
+	},
+	{
 		icon: "❤️",
 		label: "My Favourites",
 		description: "Saved meals you love",
@@ -64,6 +88,23 @@ const NAV_TILES: NavTile[] = [
 
 export function HomeScreen({ navigation }: Props) {
 	const isConnected = useNetworkStatus();
+	const [loadingRandom, setLoadingRandom] = useState(false);
+	const [randomError, setRandomError] = useState<string | null>(null);
+
+	const handleSurpriseMe = useCallback(async () => {
+		if (loadingRandom) return;
+		setRandomError(null);
+		setLoadingRandom(true);
+		try {
+			const meal = await fetchRandomMeal();
+			navigation.navigate("Meal", { meal });
+		} catch (e: any) {
+			setRandomError("Couldn't fetch a random meal. Check your connection.");
+			console.error("Random meal error:", e);
+		} finally {
+			setLoadingRandom(false);
+		}
+	}, [loadingRandom, navigation]);
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
@@ -74,6 +115,7 @@ export function HomeScreen({ navigation }: Props) {
 				contentContainerStyle={{ paddingBottom: 48 }}
 				showsVerticalScrollIndicator={false}
 			>
+				{/* Hero header */}
 				<View className="px-6 pt-10 pb-8">
 					<Text className="mb-1 text-sm font-semibold tracking-widest uppercase text-emerald-500">
 						Welcome back
@@ -87,7 +129,8 @@ export function HomeScreen({ navigation }: Props) {
 					</Text>
 				</View>
 
-				<View className="flex-row mx-6 mb-8 overflow-hidden divide-x divide-zinc-800 rounded-2xl bg-zinc-900">
+				{/* Stats bar */}
+				<View className="flex-row mx-6 mb-6 overflow-hidden divide-x divide-zinc-800 rounded-2xl bg-zinc-900">
 					{[
 						{ value: "15+", label: "Categories" },
 						{ value: "100+", label: "Recipes" },
@@ -104,6 +147,53 @@ export function HomeScreen({ navigation }: Props) {
 					))}
 				</View>
 
+				{/* Surprise Me button */}
+				<View className="px-6 mb-6">
+					<Pressable
+						onPress={handleSurpriseMe}
+						disabled={loadingRandom || isConnected === false}
+						className={`flex-row items-center justify-center py-5 rounded-3xl border-2 active:scale-[0.97] ${
+							loadingRandom || isConnected === false
+								? "border-zinc-700 bg-zinc-900 opacity-60"
+								: "border-amber-500/50 bg-amber-500/10 active:bg-amber-500/20"
+						}`}
+					>
+						{loadingRandom ? (
+							<>
+								<ActivityIndicator
+									size="small"
+									color="#f59e0b"
+									style={{ marginRight: 10 }}
+								/>
+								<Text className="text-base font-black text-amber-400">
+									Finding a meal…
+								</Text>
+							</>
+						) : (
+							<>
+								<Text className="mr-3 text-3xl">🎲</Text>
+								<View>
+									<Text className="text-base font-black text-amber-300">
+										Surprise Me!
+									</Text>
+									<Text className="text-xs text-amber-600 mt-0.5">
+										Discover a random recipe
+									</Text>
+								</View>
+							</>
+						)}
+					</Pressable>
+
+					{randomError && (
+						<View className="mt-3 px-4 py-3 rounded-2xl bg-red-900/20 border border-red-800/40">
+							<Text className="text-sm text-red-400 text-center">
+								{randomError}
+							</Text>
+						</View>
+					)}
+				</View>
+
+				{/* Primary action tiles */}
 				<View className="flex-row gap-4 px-6 mb-4">
 					{NAV_TILES.filter((t) => t.primary).map((tile) => (
 						<Pressable
@@ -117,17 +207,14 @@ export function HomeScreen({ navigation }: Props) {
 							>
 								{tile.label}
 							</Text>
-							<Text
-								className={`mt-1 text-xs leading-4 ${
-									tile.primary ? "text-zinc-800" : "text-zinc-400"
-								}`}
-							>
+							<Text className="mt-1 text-xs leading-4 text-zinc-800">
 								{tile.description}
 							</Text>
 						</Pressable>
 					))}
 				</View>
 
+				{/* Secondary action tiles */}
 				<View className="gap-3 px-6 mb-8">
 					{NAV_TILES.filter((t) => !t.primary).map((tile) => (
 						<Pressable

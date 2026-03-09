@@ -26,6 +26,11 @@ import {
 	removeRecentMeal,
 	saveFavourite,
 } from "../services";
+import {
+	addMealToShoppingList,
+	isMealInShoppingList,
+	removeMealFromShoppingList,
+} from "../services/shoppingListService";
 import { Meal } from "../types/Meal";
 import { shareMeal } from "../utils/share";
 
@@ -39,10 +44,12 @@ export function MealScreen({ route }: Props) {
 	const [isFav, setIsFav] = useState(false);
 	const [isCached, setIsCached] = useState(false);
 	const [viewerVisible, setViewerVisible] = useState(false);
+	const [inShoppingList, setInShoppingList] = useState(false);
 
 	useEffect(() => {
 		checkFavourite();
 		checkCache();
+		checkShoppingList();
 		cacheMeal(meal);
 		addRecentMeal(meal.idMeal);
 	}, [meal.idMeal]);
@@ -55,6 +62,11 @@ export function MealScreen({ route }: Props) {
 	const checkCache = useCallback(async () => {
 		const cached = await isMealCached(meal.idMeal);
 		setIsCached(cached);
+	}, [meal.idMeal]);
+
+	const checkShoppingList = useCallback(async () => {
+		const inList = await isMealInShoppingList(meal.idMeal);
+		setInShoppingList(inList);
 	}, [meal.idMeal]);
 
 	const toggleFavourite = useCallback(async () => {
@@ -71,6 +83,23 @@ export function MealScreen({ route }: Props) {
 	const handleShare = useCallback(async () => {
 		await shareMeal(meal);
 	}, [meal]);
+
+	const toggleShoppingList = useCallback(async () => {
+		if (inShoppingList) {
+			await removeMealFromShoppingList(meal.idMeal);
+			setInShoppingList(false);
+		} else {
+			if (!meal.ingredients || meal.ingredients.length === 0) {
+				Alert.alert(
+					"No ingredients",
+					"This meal has no ingredients to add to the shopping list.",
+				);
+				return;
+			}
+			await addMealToShoppingList(meal);
+			setInShoppingList(true);
+		}
+	}, [inShoppingList, meal]);
 
 	const handleDelete = useCallback(() => {
 		Alert.alert(
@@ -111,21 +140,6 @@ export function MealScreen({ route }: Props) {
 							resizeMode="cover"
 						/>
 					</Pressable>
-
-					{/* Dark scrim at top for back button legibility */}
-					<View
-						className="absolute top-0 left-0 right-0 h-24"
-						style={{ backgroundColor: "rgba(9,9,11,0.45)" }}
-					/>
-
-					{/* Dark scrim at bottom for title bleed */}
-					<View
-						className="absolute bottom-0 left-0 right-0"
-						style={{
-							height: 120,
-							backgroundColor: "rgba(9,9,11,0.55)",
-						}}
-					/>
 
 					{/* Back button overlay */}
 					<View className="absolute top-4 left-4">
@@ -202,7 +216,25 @@ export function MealScreen({ route }: Props) {
 						</Text>
 					</Pressable>
 
-					<View className="flex-row gap-3 mb-6">
+					<View className="flex-row gap-3 mb-3">
+						<Pressable
+							onPress={toggleShoppingList}
+							className={`flex-row flex-1 items-center justify-center py-3 border-2 rounded-2xl active:scale-[0.98] ${
+								inShoppingList
+									? "bg-cyan-500/15 border-cyan-500/40"
+									: "border-zinc-700 bg-zinc-900"
+							}`}
+						>
+							<Text className="mr-2 text-lg">🛒</Text>
+							<Text
+								className={`text-sm font-bold ${
+									inShoppingList ? "text-cyan-400" : "text-white"
+								}`}
+							>
+								{inShoppingList ? "In Shopping List" : "Add to List"}
+							</Text>
+						</Pressable>
+
 						{(meal.strSource || meal.strYoutube) && (
 							<Pressable
 								onPress={handleShare}
@@ -212,7 +244,9 @@ export function MealScreen({ route }: Props) {
 								<Text className="text-sm font-bold text-white">Share</Text>
 							</Pressable>
 						)}
+					</View>
 
+					<View className="flex-row gap-3 mb-6">
 						{meal.isLocal && (
 							<>
 								<Pressable

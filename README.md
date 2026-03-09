@@ -1,23 +1,26 @@
 # Meal Generator 🍽️
 
-A mobile app built with **React Native + Expo + TypeScript** that lets you discover random meals, filter by category, and search for specific recipes using [TheMealDB API](https://www.themealdb.com/api.php).  
+A mobile app built with **React Native + Expo + TypeScript** that lets you discover random meals, filter by category, and search for specific recipes using [TheMealDB API](https://www.themealdb.com/api.php).
+
 
 ---
 
 ## Features
 
-- Generate a **random meal** with full details.
-- **Filter meals** by category (e.g., Seafood, Vegetarian, Meat).
-- **Search meals** by name.
-- Save meals to **favorites** (persisted locally).
-- View **recently viewed meals** for quick access.
-- **Offline support** for cached meals.
-- **Skeleton loaders** for a smooth loading experience.
-- View **ingredients, instructions, and YouTube videos**.
-- **Share meals** using the native share menu.
-- **Add custom meals** and manage them.
-- Modern, responsive **UI with NativeWind (Tailwind CSS)**.
-- Optimized performance for large meal lists.
+- 🎲 **Surprise Me!** — Fetch a completely random meal with one tap from the home screen.
+- 🔍 **Browse by Category** — Explore meals filtered by cuisine type.
+- 🔎 **Search Recipes** — Find any dish by name with live results.
+- ❤️ **Favourites** — Save meals locally and access them anytime, even offline.
+- 🕐 **Recently Viewed** — Quick access to the last meals you opened.
+- 📅 **Meal Planner** — Assign breakfast, lunch, and dinner to each day of the week from your favourites.
+- 🛒 **Shopping List** — Auto-generate a grocery list from your saved meals; check off items as you shop.
+- 📚 **Custom Meals** — Create, edit, and delete your own recipes with photo support.
+- 📶 **Offline Support** — Cached meals are available without a network connection.
+- 💀 **Skeleton loaders** — Smooth loading placeholders throughout the app.
+- 📺 **YouTube & Source links** — Watch video walkthroughs or visit the original recipe source.
+- 📤 **Share meals** — Share any recipe via the native share menu.
+- 🎨 **Modern UI** — Dark-themed, responsive design powered by NativeWind (Tailwind CSS).
+- ⚡ **Optimised lists** — Windowed rendering for large meal collections.
 
 ---
 

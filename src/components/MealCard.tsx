@@ -26,11 +26,11 @@ export function MealCard({ meal, onPress }: Props) {
 			className="mb-4 overflow-hidden border border-zinc-800 bg-zinc-900 rounded-3xl active:scale-[0.98]"
 		>
 			{/* Thumbnail */}
-			<View className="relative">
+			<View className="relative" style={{ backgroundColor: "#18181b" }}>
 				<Image
 					source={{ uri: meal.strMealThumb }}
 					className="w-full"
-					style={{ height: 192 }}
+					style={{ height: 192, backgroundColor: "#18181b" }}
 					resizeMode="cover"
 				/>
 

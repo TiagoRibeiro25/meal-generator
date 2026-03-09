@@ -119,3 +119,41 @@ export async function searchMealsByName(name: string): Promise<Meal[]> {
 
 	return data.meals?.map(transformMealDetail) || [];
 }
+
+export async function fetchRandomMeal(): Promise<Meal> {
+	const data = await fetchApi<ApiResponse<ApiMealDetail>>("/random.php");
+
+	if (!data.meals || data.meals.length === 0) {
+		throw new NetworkError("Could not fetch a random meal");
+	}
+
+	const meal = transformMealDetail(data.meals[0]);
+	await cacheMeal(meal);
+	return meal;
+}
+
+export async function fetchMealsByArea(area: string): Promise<Meal[]> {
+	const data = await fetchApi<ApiResponse<ApiMealSummary>>(
+		`/filter.php?a=${encodeURIComponent(area)}`,
+	);
+
+	return (
+		data.meals?.map((m) => ({
+			idMeal: m.idMeal,
+			strMeal: m.strMeal,
+			strCategory: "",
+			strArea: area,
+			strInstructions: "",
+			strMealThumb: m.strMealThumb,
+			strYoutube: "",
+			strSource: "",
+			ingredients: [],
+		})) || []
+	);
+}
+
+export async function fetchAreas(): Promise<string[]> {
+	const data =
+		await fetchApi<ApiResponse<{ strArea: string }>>("/list.php?a=list");
+	return data.meals?.map((a) => a.strArea) || [];
+}
