@@ -16,7 +16,9 @@ A mobile app built with **React Native + Expo + TypeScript** that lets you disco
 - 📅 **Meal Planner** — Assign breakfast, lunch, and dinner to each day of the week from your favourites.
 - 🛒 **Shopping List** — Auto-generate a grocery list from your saved meals; check off items as you shop.
 - 🗒️ **Personal Notes** — Write and save a private note on any meal, editable and deletable at any time.
-- 📊 **Your Kitchen** — Stats overview showing favourites, custom meals, planner progress, shopping list completion, notes, and offline cache.
+- 📊 **Your Kitchen** — Stats overview showing favourites, custom meals, planner progress, shopping list completion, streak, and more.
+- 🗂️ **Collections** — Organise saved meals into custom named lists (e.g. "Quick Dinners", "Date Night") with emoji icons.
+- 🔥 **Daily Challenge & Streak** — A new random meal challenge every day; mark it as cooked to build a consecutive cooking streak with milestone badges.
 - 📚 **Custom Meals** — Create, edit, and delete your own recipes with photo support.
 - 📶 **Offline Support** — Cached meals are available without a network connection.
 - 💀 **Skeleton loaders** — Smooth loading placeholders throughout the app.

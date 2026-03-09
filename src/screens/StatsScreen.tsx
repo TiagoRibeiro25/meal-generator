@@ -3,16 +3,15 @@ import { useCallback, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BackButton } from "../components";
-import { getFavourites } from "../services/favouritesService";
-import { getCustomMeals } from "../services/customMealsService";
-import { getNoteCount } from "../services/notesService";
-import {
-	getMealPlan,
-	countPlannedMeals,
-} from "../services/mealPlanService";
-import { getShoppingList } from "../services/shoppingListService";
-import { getRecentMealIds } from "../services/recentService";
 import { getCachedMealIds } from "../services/cacheService";
+import { getCollections } from "../services/collectionsService";
+import { getCustomMeals } from "../services/customMealsService";
+import { getFavourites } from "../services/favouritesService";
+import { countPlannedMeals, getMealPlan } from "../services/mealPlanService";
+import { getNoteCount } from "../services/notesService";
+import { getRecentMealIds } from "../services/recentService";
+import { getShoppingList } from "../services/shoppingListService";
+import { getStreakData } from "../services/streakService";
 
 type StatCardProps = {
 	icon: string;
@@ -35,16 +34,15 @@ function StatCard({ icon, label, value, accent, onPress }: StatCardProps) {
 			>
 				{value}
 			</Text>
-			<Text className="text-xs font-semibold text-zinc-400 mt-0.5">{label}</Text>
+			<Text className="text-xs font-semibold text-zinc-400 mt-0.5">
+				{label}
+			</Text>
 		</View>
 	);
 
 	if (onPress) {
 		return (
-			<Pressable
-				onPress={onPress}
-				className="flex-1 active:scale-[0.97]"
-			>
+			<Pressable onPress={onPress} className="flex-1 active:scale-[0.97]">
 				{inner}
 			</Pressable>
 		);
@@ -62,6 +60,10 @@ type Stats = {
 	notes: number;
 	recentlyViewed: number;
 	cachedMeals: number;
+	collections: number;
+	currentStreak: number;
+	longestStreak: number;
+	totalCooked: number;
 };
 
 const EMPTY_STATS: Stats = {
@@ -73,6 +75,10 @@ const EMPTY_STATS: Stats = {
 	notes: 0,
 	recentlyViewed: 0,
 	cachedMeals: 0,
+	collections: 0,
+	currentStreak: 0,
+	longestStreak: 0,
+	totalCooked: 0,
 };
 
 export function StatsScreen() {
@@ -91,6 +97,8 @@ export function StatsScreen() {
 				noteCount,
 				recentIds,
 				cachedIds,
+				collections,
+				streakData,
 			] = await Promise.all([
 				getFavourites(),
 				getCustomMeals(),
@@ -99,6 +107,8 @@ export function StatsScreen() {
 				getNoteCount(),
 				getRecentMealIds(),
 				getCachedMealIds(),
+				getCollections(),
+				getStreakData(),
 			]);
 
 			setStats({
@@ -110,6 +120,10 @@ export function StatsScreen() {
 				notes: noteCount,
 				recentlyViewed: recentIds.length,
 				cachedMeals: cachedIds.length,
+				collections: collections.length,
+				currentStreak: streakData.currentStreak,
+				longestStreak: streakData.longestStreak,
+				totalCooked: streakData.totalCooked,
 			});
 		} catch (e) {
 			console.error("Failed to load stats:", e);
@@ -182,7 +196,7 @@ export function StatsScreen() {
 						/>
 					</View>
 
-					<View className="flex-row gap-3 mb-6">
+					<View className="flex-row gap-3 mb-3">
 						<StatCard
 							icon="🕐"
 							label="Recently Viewed"
@@ -195,6 +209,17 @@ export function StatsScreen() {
 							value={stats.cachedMeals}
 							accent="border-zinc-700 bg-zinc-900/60"
 						/>
+					</View>
+
+					<View className="flex-row gap-3 mb-6">
+						<StatCard
+							icon="🗂️"
+							label="Collections"
+							value={stats.collections}
+							accent="border-zinc-700 bg-zinc-900/60"
+							onPress={() => (navigation as any).navigate("Collections")}
+						/>
+						<View className="flex-1" />
 					</View>
 
 					{/* Meal Planner progress */}
@@ -269,6 +294,52 @@ export function StatsScreen() {
 						)}
 					</Pressable>
 
+					{/* Daily Challenge streak */}
+					<Text className="text-xs font-semibold tracking-widest uppercase text-zinc-500 mb-3">
+						Daily Challenge
+					</Text>
+					<Pressable
+						onPress={() => (navigation as any).navigate("DailyChallenge")}
+						className="p-5 mb-6 rounded-3xl border border-amber-800/40 bg-amber-900/10 active:scale-[0.98]"
+					>
+						<View className="flex-row items-center justify-between mb-4">
+							<View className="flex-row items-center gap-3">
+								<Text className="text-3xl">🔥</Text>
+								<View>
+									<Text className="text-base font-black text-white">
+										Cooking Streak
+									</Text>
+									<Text className="text-xs text-zinc-500 mt-0.5">
+										{stats.totalCooked} meals cooked in total
+									</Text>
+								</View>
+							</View>
+							<Text className="text-2xl font-black text-amber-400">
+								{stats.currentStreak}🔥
+							</Text>
+						</View>
+						<View className="flex-row gap-3">
+							<View className="flex-1 items-center py-3 rounded-2xl bg-zinc-900/80 border border-zinc-800">
+								<Text className="text-lg font-black text-white">
+									{stats.currentStreak}
+								</Text>
+								<Text className="text-xs text-zinc-500 mt-0.5">Current</Text>
+							</View>
+							<View className="flex-1 items-center py-3 rounded-2xl bg-zinc-900/80 border border-zinc-800">
+								<Text className="text-lg font-black text-white">
+									{stats.longestStreak}
+								</Text>
+								<Text className="text-xs text-zinc-500 mt-0.5">Best</Text>
+							</View>
+							<View className="flex-1 items-center py-3 rounded-2xl bg-zinc-900/80 border border-zinc-800">
+								<Text className="text-lg font-black text-white">
+									{stats.totalCooked}
+								</Text>
+								<Text className="text-xs text-zinc-500 mt-0.5">Total</Text>
+							</View>
+						</View>
+					</Pressable>
+
 					{/* Notes & misc */}
 					<Text className="text-xs font-semibold tracking-widest uppercase text-zinc-500 mb-3">
 						Notes
@@ -286,7 +357,8 @@ export function StatsScreen() {
 					{/* Empty state prompt */}
 					{stats.favourites === 0 &&
 						stats.customMeals === 0 &&
-						stats.plannedMeals === 0 && (
+						stats.plannedMeals === 0 &&
+						stats.currentStreak === 0 && (
 							<View className="items-center px-4 py-6 rounded-3xl border border-zinc-800 bg-zinc-900/40">
 								<Text className="text-4xl mb-3">🍽️</Text>
 								<Text className="text-base font-bold text-center text-white mb-1">

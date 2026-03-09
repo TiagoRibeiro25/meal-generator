@@ -7,3 +7,5 @@ export * from "./mealPlanService";
 export * from "./recentService";
 export * from "./shoppingListService";
 export * from "./notesService";
+export * from "./streakService";
+export * from "./collectionsService";

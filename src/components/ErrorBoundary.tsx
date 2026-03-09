@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
 						Something went wrong
 					</Text>
 					<Text className="mb-6 text-center text-zinc-400">
-						{this.state.error?.message || "An unexpected error occurred"}
+						An unexpected error occurred
 					</Text>
 					<PrimaryButton
 						title="Reload App"

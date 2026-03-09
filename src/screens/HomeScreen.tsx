@@ -45,6 +45,22 @@ const NAV_TILES: NavTile[] = [
 		primary: true,
 	},
 	{
+		icon: "🔥",
+		label: "Daily Challenge",
+		description: "Cook something new every day",
+		screen: "DailyChallenge",
+		accent: "bg-zinc-800",
+		accentText: "text-white",
+	},
+	{
+		icon: "🗂️",
+		label: "Collections",
+		description: "Organise meals into named lists",
+		screen: "Collections",
+		accent: "bg-zinc-800",
+		accentText: "text-white",
+	},
+	{
 		icon: "📊",
 		label: "Your Kitchen",
 		description: "Stats, progress & overview",

@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import {
 	Alert,
 	FlatList,
+	Modal,
 	Pressable,
 	SectionList,
 	Text,
@@ -95,21 +96,17 @@ export function ShoppingListScreen() {
 
 	const handleRemoveMeal = useCallback(
 		(mealId: string, mealName: string) => {
-			Alert.alert(
-				"Remove meal",
-				`Remove all ingredients from "${mealName}"?`,
-				[
-					{ text: "Cancel", style: "cancel" },
-					{
-						text: "Remove",
-						style: "destructive",
-						onPress: async () => {
-							await removeMealFromShoppingList(mealId);
-							await load();
-						},
+			Alert.alert("Remove meal", `Remove all ingredients from "${mealName}"?`, [
+				{ text: "Cancel", style: "cancel" },
+				{
+					text: "Remove",
+					style: "destructive",
+					onPress: async () => {
+						await removeMealFromShoppingList(mealId);
+						await load();
 					},
-				],
-			);
+				},
+			]);
 		},
 		[load],
 	);
@@ -161,97 +158,100 @@ export function ShoppingListScreen() {
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
-			{/* Add from Favourites Panel */}
-			{showAddPanel && (
-				<View className="absolute inset-0 z-50 bg-zinc-950/95">
-					<SafeAreaView className="flex-1">
-						<View className="px-6 pt-6 pb-4">
-							<View className="flex-row items-center justify-between mb-1">
-								<Text className="text-sm font-semibold tracking-widest uppercase text-emerald-500">
-									Add ingredients
-								</Text>
-								<Pressable
-									onPress={() => setShowAddPanel(false)}
-									className="items-center justify-center w-9 h-9 rounded-full bg-zinc-800 active:bg-zinc-700"
-								>
-									<Text className="text-base font-bold text-zinc-300">✕</Text>
-								</Pressable>
-							</View>
-							<Text
-								className="text-3xl font-black text-white"
-								style={{ letterSpacing: -0.5 }}
-							>
-								Pick a Meal
+			{/* Add from Favourites Modal */}
+			<Modal
+				visible={showAddPanel}
+				animationType="slide"
+				presentationStyle="pageSheet"
+				onRequestClose={() => setShowAddPanel(false)}
+			>
+				<SafeAreaView className="flex-1 bg-zinc-950">
+					<View className="px-6 pt-6 pb-4">
+						<View className="flex-row items-center justify-between mb-1">
+							<Text className="text-sm font-semibold tracking-widest uppercase text-emerald-500">
+								Add ingredients
 							</Text>
-							<Text className="mt-1 text-sm text-zinc-500">
-								Add all ingredients from a saved meal
+							<Pressable
+								onPress={() => setShowAddPanel(false)}
+								className="items-center justify-center w-9 h-9 rounded-full bg-zinc-800 active:bg-zinc-700"
+							>
+								<Text className="text-base font-bold text-zinc-300">✕</Text>
+							</Pressable>
+						</View>
+						<Text
+							className="text-3xl font-black text-white"
+							style={{ letterSpacing: -0.5 }}
+						>
+							Pick a Meal
+						</Text>
+						<Text className="mt-1 text-sm text-zinc-500">
+							Add all ingredients from a saved meal
+						</Text>
+					</View>
+
+					<View className="h-px mx-6 mb-3 bg-zinc-800" />
+
+					{favourites.length === 0 ? (
+						<View className="items-center justify-center flex-1 px-8">
+							<Text className="mb-3 text-5xl">🤍</Text>
+							<Text className="text-base font-bold text-center text-white">
+								No favourites yet
+							</Text>
+							<Text className="mt-1 text-sm text-center text-zinc-500">
+								Save meals to your favourites first, then add their ingredients
+								here.
 							</Text>
 						</View>
-
-						<View className="h-px mx-6 mb-3 bg-zinc-800" />
-
-						{favourites.length === 0 ? (
-							<View className="items-center justify-center flex-1 px-8">
-								<Text className="mb-3 text-5xl">🤍</Text>
-								<Text className="text-base font-bold text-center text-white">
-									No favourites yet
-								</Text>
-								<Text className="mt-1 text-sm text-center text-zinc-500">
-									Save meals to your favourites first, then add their ingredients
-									here.
-								</Text>
-							</View>
-						) : (
-							<FlatList
-								data={favourites}
-								keyExtractor={(item) => item.idMeal}
-								contentContainerStyle={{
-									paddingHorizontal: 24,
-									paddingBottom: 48,
-								}}
-								showsVerticalScrollIndicator={false}
-								renderItem={({ item }) => {
-									const inList = sections.some((s) => s.mealId === item.idMeal);
-									return (
-										<Pressable
-											onPress={() => handleAddFromFavourite(item)}
-											className="flex-row items-center p-4 mb-3 border border-zinc-800 bg-zinc-900 rounded-2xl active:scale-[0.98]"
-										>
-											<View className="flex-1">
-												<Text
-													className="text-base font-bold text-white"
-													numberOfLines={1}
-												>
-													{item.strMeal}
-												</Text>
-												<Text className="mt-0.5 text-xs text-zinc-500">
-													{item.ingredients?.filter((i) => i.ingredient).length ??
-														0}{" "}
-													ingredients
-													{item.strCategory ? ` · ${item.strCategory}` : ""}
+					) : (
+						<FlatList
+							data={favourites}
+							keyExtractor={(item) => item.idMeal}
+							contentContainerStyle={{
+								paddingHorizontal: 24,
+								paddingBottom: 48,
+							}}
+							showsVerticalScrollIndicator={false}
+							renderItem={({ item }) => {
+								const inList = sections.some((s) => s.mealId === item.idMeal);
+								return (
+									<Pressable
+										onPress={() => handleAddFromFavourite(item)}
+										className="flex-row items-center p-4 mb-3 border border-zinc-800 bg-zinc-900 rounded-2xl active:scale-[0.98]"
+									>
+										<View className="flex-1">
+											<Text
+												className="text-base font-bold text-white"
+												numberOfLines={1}
+											>
+												{item.strMeal}
+											</Text>
+											<Text className="mt-0.5 text-xs text-zinc-500">
+												{item.ingredients?.filter((i) => i.ingredient).length ??
+													0}{" "}
+												ingredients
+												{item.strCategory ? ` · ${item.strCategory}` : ""}
+											</Text>
+										</View>
+										{inList ? (
+											<View className="px-3 py-1 ml-3 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+												<Text className="text-xs font-semibold text-emerald-400">
+													✓ Added
 												</Text>
 											</View>
-											{inList ? (
-												<View className="px-3 py-1 ml-3 rounded-full bg-emerald-500/15 border border-emerald-500/30">
-													<Text className="text-xs font-semibold text-emerald-400">
-														✓ Added
-													</Text>
-												</View>
-											) : (
-												<View className="px-3 py-1 ml-3 rounded-full bg-zinc-700">
-													<Text className="text-xs font-semibold text-zinc-300">
-														+ Add
-													</Text>
-												</View>
-											)}
-										</Pressable>
-									);
-								}}
-							/>
-						)}
-					</SafeAreaView>
-				</View>
-			)}
+										) : (
+											<View className="px-3 py-1 ml-3 rounded-full bg-zinc-700">
+												<Text className="text-xs font-semibold text-zinc-300">
+													+ Add
+												</Text>
+											</View>
+										)}
+									</Pressable>
+								);
+							}}
+						/>
+					)}
+				</SafeAreaView>
+			</Modal>
 
 			{/* Header */}
 			<View className="px-6 pt-6 pb-4 bg-zinc-950">
@@ -416,9 +416,7 @@ export function ShoppingListScreen() {
 							<View className="flex-1">
 								<Text
 									className={`text-sm font-semibold leading-snug ${
-										item.checked
-											? "line-through text-zinc-600"
-											: "text-white"
+										item.checked ? "line-through text-zinc-600" : "text-white"
 									}`}
 								>
 									{item.ingredient}
