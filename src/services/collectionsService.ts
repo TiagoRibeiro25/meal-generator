@@ -1,7 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { COLLECTIONS_KEY } from "../config/constants";
 import { Meal } from "../types/Meal";
-
-const COLLECTIONS_KEY = "@meal_collections";
 
 export type Collection = {
 	id: string;

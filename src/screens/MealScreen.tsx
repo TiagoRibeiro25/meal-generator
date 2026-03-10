@@ -2,11 +2,9 @@ import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	Alert,
-	FlatList,
 	Image,
 	Keyboard,
 	Linking,
-	Modal,
 	Pressable,
 	ScrollView,
 	Text,
@@ -20,6 +18,7 @@ import {
 	IngredientsList,
 	OfflineBadge,
 } from "../components";
+import { AddToCollectionSheet, ServingsScaler } from "../components/MealScreen";
 import {
 	addRecentMeal,
 	cacheMeal,
@@ -36,235 +35,12 @@ import {
 	isMealInShoppingList,
 	removeMealFromShoppingList,
 } from "../services/shoppingListService";
-import {
-	Collection,
-	addMealToCollection,
-	getCollections,
-	getCollectionsForMeal,
-} from "../services/collectionsService";
 import { Meal } from "../types/Meal";
 import { shareMeal } from "../utils/share";
 
 type Props = {
 	route: { params: { meal: Meal } };
 };
-
-function ServingsScaler({
-	servings,
-	onDecrement,
-	onIncrement,
-}: {
-	servings: number;
-	onDecrement: () => void;
-	onIncrement: () => void;
-}) {
-	return (
-		<View className="flex-row items-center ml-auto gap-1">
-			<Pressable
-				onPress={onDecrement}
-				disabled={servings <= 1}
-				className={`items-center justify-center w-8 h-8 rounded-xl border active:scale-[0.95] ${
-					servings <= 1
-						? "border-zinc-800 bg-zinc-900 opacity-40"
-						: "border-zinc-700 bg-zinc-800"
-				}`}
-			>
-				<Text className="text-base font-black text-zinc-300">−</Text>
-			</Pressable>
-
-			<View className="items-center justify-center w-10 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30">
-				<Text className="text-sm font-black text-emerald-400">{servings}×</Text>
-			</View>
-
-			<Pressable
-				onPress={onIncrement}
-				disabled={servings >= 10}
-				className={`items-center justify-center w-8 h-8 rounded-xl border active:scale-[0.95] ${
-					servings >= 10
-						? "border-zinc-800 bg-zinc-900 opacity-40"
-						: "border-zinc-700 bg-zinc-800"
-				}`}
-			>
-				<Text className="text-base font-black text-zinc-300">+</Text>
-			</Pressable>
-		</View>
-	);
-}
-
-function AddToCollectionSheet({
-	visible,
-	meal,
-	onClose,
-}: {
-	visible: boolean;
-	meal: Meal;
-	onClose: () => void;
-}) {
-	const [collections, setCollections] = useState<Collection[]>([]);
-	const [memberIds, setMemberIds] = useState<Set<string>>(new Set());
-	const [loading, setLoading] = useState(false);
-	const [adding, setAdding] = useState<string | null>(null);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			const [all, withMeal] = await Promise.all([
-				getCollections(),
-				getCollectionsForMeal(meal.idMeal),
-			]);
-			setCollections(all);
-			setMemberIds(new Set(withMeal.map((c) => c.id)));
-		} catch (e) {
-			console.error("Failed to load collections for sheet", e);
-		} finally {
-			setLoading(false);
-		}
-	}, [meal.idMeal]);
-
-	useEffect(() => {
-		if (visible) load();
-	}, [visible, load]);
-
-	const handleToggle = useCallback(
-		async (collection: Collection) => {
-			if (adding) return;
-			setAdding(collection.id);
-			try {
-				await addMealToCollection(collection.id, meal);
-				setMemberIds((prev) => new Set([...prev, collection.id]));
-			} catch (e) {
-				console.error("Failed to add to collection", e);
-			} finally {
-				setAdding(null);
-			}
-		},
-		[meal, adding],
-	);
-
-	return (
-		<Modal
-			visible={visible}
-			animationType="slide"
-			presentationStyle="pageSheet"
-			onRequestClose={onClose}
-		>
-			<SafeAreaView className="flex-1 bg-zinc-950">
-				{/* Header */}
-				<View className="px-6 pt-6 pb-4">
-					<View className="flex-row items-center justify-between mb-1">
-						<Text className="text-sm font-semibold tracking-widest uppercase text-emerald-500">
-							Save to
-						</Text>
-						<Pressable
-							onPress={onClose}
-							className="items-center justify-center w-9 h-9 rounded-full bg-zinc-800 active:bg-zinc-700"
-						>
-							<Text className="text-base font-bold text-zinc-300">✕</Text>
-						</Pressable>
-					</View>
-					<Text
-						className="text-3xl font-black text-white"
-						style={{ letterSpacing: -0.5 }}
-					>
-						Add to Collection
-					</Text>
-					<Text className="mt-1 text-sm text-zinc-500" numberOfLines={1}>
-						{meal.strMeal}
-					</Text>
-				</View>
-
-				<View className="h-px mx-6 mb-3 bg-zinc-800" />
-
-				{loading ? (
-					<View className="flex-1 items-center justify-center">
-						<Text className="text-zinc-500">Loading collections…</Text>
-					</View>
-				) : collections.length === 0 ? (
-					<View className="flex-1 items-center justify-center px-8">
-						<Text className="text-5xl mb-3">🗂️</Text>
-						<Text className="text-base font-bold text-center text-white mb-1">
-							No collections yet
-						</Text>
-						<Text className="text-sm text-center text-zinc-500 leading-6">
-							Head to the Collections screen to create your first list, then
-							come back here to save this meal.
-						</Text>
-						<Pressable
-							onPress={onClose}
-							className="mt-6 px-6 py-3 bg-zinc-800 rounded-2xl active:scale-[0.98]"
-						>
-							<Text className="text-sm font-bold text-white">Dismiss</Text>
-						</Pressable>
-					</View>
-				) : (
-					<FlatList
-						data={collections}
-						keyExtractor={(item) => item.id}
-						contentContainerStyle={{
-							paddingHorizontal: 24,
-							paddingBottom: 48,
-						}}
-						showsVerticalScrollIndicator={false}
-						renderItem={({ item }) => {
-							const isMember = memberIds.has(item.id);
-							const isAdding = adding === item.id;
-							return (
-								<Pressable
-									onPress={() => !isMember && handleToggle(item)}
-									className={`flex-row items-center p-4 mb-3 border rounded-2xl active:scale-[0.98] ${
-										isMember
-											? "border-emerald-500/40 bg-emerald-500/8"
-											: "border-zinc-800 bg-zinc-900"
-									}`}
-								>
-									{/* Emoji icon */}
-									<View className="items-center justify-center w-11 h-11 mr-4 rounded-xl bg-zinc-800">
-										<Text className="text-2xl">{item.emoji}</Text>
-									</View>
-
-									{/* Name + count */}
-									<View className="flex-1">
-										<Text
-											className="text-base font-bold text-white"
-											numberOfLines={1}
-										>
-											{item.name}
-										</Text>
-										<Text className="text-xs text-zinc-500 mt-0.5">
-											{item.meals.length} meal
-											{item.meals.length !== 1 ? "s" : ""}
-										</Text>
-									</View>
-
-									{/* Status badge */}
-									{isMember ? (
-										<View className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
-											<Text className="text-xs font-bold text-emerald-400">
-												✓ Added
-											</Text>
-										</View>
-									) : isAdding ? (
-										<View className="px-3 py-1 rounded-full bg-zinc-700">
-											<Text className="text-xs font-semibold text-zinc-400">
-												…
-											</Text>
-										</View>
-									) : (
-										<View className="px-3 py-1 rounded-full bg-zinc-700">
-											<Text className="text-xs font-semibold text-zinc-300">
-												+ Add
-											</Text>
-										</View>
-									)}
-								</Pressable>
-							);
-						}}
-					/>
-				)}
-			</SafeAreaView>
-		</Modal>
-	);
-}
 
 export function MealScreen({ route }: Props) {
 	const { meal } = route.params;
@@ -274,16 +50,13 @@ export function MealScreen({ route }: Props) {
 	const [isCached, setIsCached] = useState(false);
 	const [viewerVisible, setViewerVisible] = useState(false);
 	const [inShoppingList, setInShoppingList] = useState(false);
+	const [servings, setServings] = useState(1);
+	const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
+
 	const [note, setNote] = useState("");
 	const [editingNote, setEditingNote] = useState(false);
 	const [noteDraft, setNoteDraft] = useState("");
 	const noteInputRef = useRef<TextInput>(null);
-
-	// Servings scaler (1 = no scaling)
-	const [servings, setServings] = useState(1);
-
-	// Add to Collection sheet
-	const [collectionSheetVisible, setCollectionSheetVisible] = useState(false);
 
 	useEffect(() => {
 		checkFavourite();
@@ -292,6 +65,7 @@ export function MealScreen({ route }: Props) {
 		loadNote();
 		cacheMeal(meal);
 		addRecentMeal(meal.idMeal);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [meal.idMeal]);
 
 	const checkFavourite = useCallback(async () => {
@@ -333,17 +107,17 @@ export function MealScreen({ route }: Props) {
 		if (inShoppingList) {
 			await removeMealFromShoppingList(meal.idMeal);
 			setInShoppingList(false);
-		} else {
-			if (!meal.ingredients || meal.ingredients.length === 0) {
-				Alert.alert(
-					"No ingredients",
-					"This meal has no ingredients to add to the shopping list.",
-				);
-				return;
-			}
-			await addMealToShoppingList(meal);
-			setInShoppingList(true);
+			return;
 		}
+		if (!meal.ingredients || meal.ingredients.length === 0) {
+			Alert.alert(
+				"No ingredients",
+				"This meal has no ingredients to add to the shopping list.",
+			);
+			return;
+		}
+		await addMealToShoppingList(meal);
+		setInShoppingList(true);
 	}, [inShoppingList, meal]);
 
 	const handleEditNote = useCallback(() => {
@@ -395,7 +169,7 @@ export function MealScreen({ route }: Props) {
 							await removeRecentMeal(meal.idMeal);
 							navigation.goBack();
 						} catch (e) {
-							console.error("Failed to delete custom meal", e);
+							console.error("[MealScreen] Failed to delete custom meal:", e);
 							Alert.alert("Error", "Failed to delete meal");
 						}
 					},
@@ -416,7 +190,6 @@ export function MealScreen({ route }: Props) {
 				contentContainerStyle={{ paddingBottom: 48 }}
 				showsVerticalScrollIndicator={false}
 			>
-				{/* Hero image */}
 				<View className="relative">
 					<Pressable onPress={() => setViewerVisible(true)}>
 						<Image
@@ -427,12 +200,10 @@ export function MealScreen({ route }: Props) {
 						/>
 					</Pressable>
 
-					{/* Back button overlay */}
 					<View className="absolute top-4 left-4">
 						<BackButton />
 					</View>
 
-					{/* Tap-to-expand hint */}
 					<View className="absolute bottom-4 right-4">
 						<View className="px-3 py-1 rounded-full bg-zinc-950/70">
 							<Text className="text-xs font-semibold text-zinc-300">
@@ -449,7 +220,6 @@ export function MealScreen({ route }: Props) {
 				/>
 
 				<View className="px-5">
-					{/* Title & tags */}
 					<View className="pt-5 pb-4">
 						<Text
 							className="mb-3 text-3xl font-black leading-tight text-white"
@@ -487,7 +257,6 @@ export function MealScreen({ route }: Props) {
 
 					<View className="h-px mb-5 bg-zinc-800" />
 
-					{/* Favourite button */}
 					<Pressable
 						onPress={toggleFavourite}
 						className={`flex-row items-center justify-center py-4 mb-3 rounded-2xl active:scale-[0.98] ${
@@ -504,7 +273,6 @@ export function MealScreen({ route }: Props) {
 						</Text>
 					</Pressable>
 
-					{/* Shopping list + Share row */}
 					<View className="flex-row gap-3 mb-3">
 						<Pressable
 							onPress={toggleShoppingList}
@@ -516,9 +284,7 @@ export function MealScreen({ route }: Props) {
 						>
 							<Text className="mr-2 text-lg">🛒</Text>
 							<Text
-								className={`text-sm font-bold ${
-									inShoppingList ? "text-cyan-400" : "text-white"
-								}`}
+								className={`text-sm font-bold ${inShoppingList ? "text-cyan-400" : "text-white"}`}
 							>
 								{inShoppingList ? "In Shopping List" : "Add to List"}
 							</Text>
@@ -535,7 +301,6 @@ export function MealScreen({ route }: Props) {
 						)}
 					</View>
 
-					{/* Add to Collection button */}
 					<Pressable
 						onPress={() => setCollectionSheetVisible(true)}
 						className="flex-row items-center justify-center py-3 mb-3 border-2 border-zinc-700 rounded-2xl bg-zinc-900 active:scale-[0.98]"
@@ -546,7 +311,6 @@ export function MealScreen({ route }: Props) {
 						</Text>
 					</Pressable>
 
-					{/* Edit / Delete row (custom meals only) */}
 					{meal.isLocal && (
 						<View className="flex-row gap-3 mb-6">
 							<Pressable
@@ -570,9 +334,7 @@ export function MealScreen({ route }: Props) {
 						</View>
 					)}
 
-					{/* Ingredients */}
 					<View className="p-5 mb-4 border border-zinc-800 bg-zinc-900 rounded-3xl">
-						{/* Section header with servings scaler */}
 						<View className="flex-row items-center mb-4">
 							<View className="items-center justify-center w-9 h-9 mr-3 rounded-xl bg-emerald-500/15">
 								<Text className="text-lg">🥗</Text>
@@ -604,7 +366,6 @@ export function MealScreen({ route }: Props) {
 						/>
 					</View>
 
-					{/* Personal Notes */}
 					<View className="p-5 mb-4 border border-zinc-800 bg-zinc-900 rounded-3xl">
 						<View className="flex-row items-center mb-4">
 							<View className="items-center justify-center w-9 h-9 mr-3 rounded-xl bg-amber-500/15">
@@ -680,7 +441,6 @@ export function MealScreen({ route }: Props) {
 						)}
 					</View>
 
-					{/* Instructions */}
 					<View className="p-5 mb-6 border border-zinc-800 bg-zinc-900 rounded-3xl">
 						<View className="flex-row items-center mb-4">
 							<View className="items-center justify-center w-9 h-9 mr-3 rounded-xl bg-cyan-500/15">
@@ -696,7 +456,6 @@ export function MealScreen({ route }: Props) {
 						</Text>
 					</View>
 
-					{/* More Resources */}
 					{(meal.strYoutube || meal.strSource) && (
 						<View className="gap-3">
 							<Text className="mb-1 text-xs font-semibold tracking-widest uppercase text-zinc-500">

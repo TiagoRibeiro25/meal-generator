@@ -1,16 +1,10 @@
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useState } from "react";
-import {
-	Alert,
-	FlatList,
-	Modal,
-	Pressable,
-	SectionList,
-	Text,
-	View,
-} from "react-native";
+import { Alert, Pressable, SectionList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BackButton } from "../components";
+import { AddFromFavouritesModal } from "../components/ShoppingList";
+import { getFavourites } from "../services/favouritesService";
 import {
 	ShoppingListItem,
 	clearCheckedItems,
@@ -20,9 +14,8 @@ import {
 	removeMealFromShoppingList,
 	removeShoppingItem,
 	toggleShoppingItem,
+	addMealToShoppingList,
 } from "../services/shoppingListService";
-import { getFavourites } from "../services/favouritesService";
-import { addMealToShoppingList } from "../services/shoppingListService";
 import { Meal } from "../types/Meal";
 
 type Section = {
@@ -50,7 +43,7 @@ export function ShoppingListScreen() {
 				})),
 			);
 		} catch (e) {
-			console.error(e);
+			console.error("[ShoppingListScreen] Failed to load list:", e);
 		} finally {
 			setLoading(false);
 		}
@@ -111,8 +104,10 @@ export function ShoppingListScreen() {
 	);
 
 	const handleClearChecked = useCallback(async () => {
-		const allItems = sections.flatMap((s) => s.data);
-		const checkedCount = allItems.filter((i) => i.checked).length;
+		const checkedCount = sections
+			.flatMap((s) => s.data)
+			.filter((i) => i.checked).length;
+
 		if (checkedCount === 0) return;
 
 		Alert.alert(
@@ -152,107 +147,19 @@ export function ShoppingListScreen() {
 		0,
 	);
 	const hasChecked = checkedItems > 0;
-
 	const isEmpty = !loading && sections.length === 0;
+	const addedMealIds = new Set(sections.map((s) => s.mealId));
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
-			{/* Add from Favourites Modal */}
-			<Modal
+			<AddFromFavouritesModal
 				visible={showAddPanel}
-				animationType="slide"
-				presentationStyle="pageSheet"
-				onRequestClose={() => setShowAddPanel(false)}
-			>
-				<SafeAreaView className="flex-1 bg-zinc-950">
-					<View className="px-6 pt-6 pb-4">
-						<View className="flex-row items-center justify-between mb-1">
-							<Text className="text-sm font-semibold tracking-widest uppercase text-emerald-500">
-								Add ingredients
-							</Text>
-							<Pressable
-								onPress={() => setShowAddPanel(false)}
-								className="items-center justify-center w-9 h-9 rounded-full bg-zinc-800 active:bg-zinc-700"
-							>
-								<Text className="text-base font-bold text-zinc-300">✕</Text>
-							</Pressable>
-						</View>
-						<Text
-							className="text-3xl font-black text-white"
-							style={{ letterSpacing: -0.5 }}
-						>
-							Pick a Meal
-						</Text>
-						<Text className="mt-1 text-sm text-zinc-500">
-							Add all ingredients from a saved meal
-						</Text>
-					</View>
+				favourites={favourites}
+				addedMealIds={addedMealIds}
+				onAdd={handleAddFromFavourite}
+				onClose={() => setShowAddPanel(false)}
+			/>
 
-					<View className="h-px mx-6 mb-3 bg-zinc-800" />
-
-					{favourites.length === 0 ? (
-						<View className="items-center justify-center flex-1 px-8">
-							<Text className="mb-3 text-5xl">🤍</Text>
-							<Text className="text-base font-bold text-center text-white">
-								No favourites yet
-							</Text>
-							<Text className="mt-1 text-sm text-center text-zinc-500">
-								Save meals to your favourites first, then add their ingredients
-								here.
-							</Text>
-						</View>
-					) : (
-						<FlatList
-							data={favourites}
-							keyExtractor={(item) => item.idMeal}
-							contentContainerStyle={{
-								paddingHorizontal: 24,
-								paddingBottom: 48,
-							}}
-							showsVerticalScrollIndicator={false}
-							renderItem={({ item }) => {
-								const inList = sections.some((s) => s.mealId === item.idMeal);
-								return (
-									<Pressable
-										onPress={() => handleAddFromFavourite(item)}
-										className="flex-row items-center p-4 mb-3 border border-zinc-800 bg-zinc-900 rounded-2xl active:scale-[0.98]"
-									>
-										<View className="flex-1">
-											<Text
-												className="text-base font-bold text-white"
-												numberOfLines={1}
-											>
-												{item.strMeal}
-											</Text>
-											<Text className="mt-0.5 text-xs text-zinc-500">
-												{item.ingredients?.filter((i) => i.ingredient).length ??
-													0}{" "}
-												ingredients
-												{item.strCategory ? ` · ${item.strCategory}` : ""}
-											</Text>
-										</View>
-										{inList ? (
-											<View className="px-3 py-1 ml-3 rounded-full bg-emerald-500/15 border border-emerald-500/30">
-												<Text className="text-xs font-semibold text-emerald-400">
-													✓ Added
-												</Text>
-											</View>
-										) : (
-											<View className="px-3 py-1 ml-3 rounded-full bg-zinc-700">
-												<Text className="text-xs font-semibold text-zinc-300">
-													+ Add
-												</Text>
-											</View>
-										)}
-									</Pressable>
-								);
-							}}
-						/>
-					)}
-				</SafeAreaView>
-			</Modal>
-
-			{/* Header */}
 			<View className="px-6 pt-6 pb-4 bg-zinc-950">
 				<BackButton />
 
@@ -276,24 +183,21 @@ export function ShoppingListScreen() {
 									{checkedItems}/{totalItems}
 								</Text>
 							</View>
-							{totalItems > 0 && (
+							<View
+								className="mt-1.5 h-1.5 rounded-full bg-zinc-800 overflow-hidden"
+								style={{ width: 80 }}
+							>
 								<View
-									className="mt-1.5 h-1.5 rounded-full bg-zinc-800 overflow-hidden"
-									style={{ width: 80 }}
-								>
-									<View
-										className="h-full rounded-full bg-emerald-500"
-										style={{
-											width: `${Math.round((checkedItems / totalItems) * 100)}%`,
-										}}
-									/>
-								</View>
-							)}
+									className="h-full rounded-full bg-emerald-500"
+									style={{
+										width: `${Math.round((checkedItems / totalItems) * 100)}%`,
+									}}
+								/>
+							</View>
 						</View>
 					)}
 				</View>
 
-				{/* Action row */}
 				<View className="flex-row gap-3 mt-4">
 					<Pressable
 						onPress={openAddPanel}
@@ -329,7 +233,6 @@ export function ShoppingListScreen() {
 
 			<View className="h-px mx-6 mb-2 bg-zinc-800" />
 
-			{/* Empty state */}
 			{isEmpty && (
 				<View className="items-center justify-center flex-1 px-8">
 					<View className="items-center justify-center w-24 h-24 mb-6 rounded-full bg-zinc-900 border-2 border-zinc-800">
@@ -348,7 +251,6 @@ export function ShoppingListScreen() {
 				</View>
 			)}
 
-			{/* List */}
 			{!isEmpty && (
 				<SectionList
 					sections={sections}
@@ -398,7 +300,6 @@ export function ShoppingListScreen() {
 									: "bg-zinc-900 border-zinc-800"
 							}`}
 						>
-							{/* Checkbox */}
 							<View
 								className={`w-6 h-6 rounded-full mr-3 items-center justify-center border-2 flex-shrink-0 ${
 									item.checked
@@ -411,7 +312,6 @@ export function ShoppingListScreen() {
 								)}
 							</View>
 
-							{/* Text */}
 							<View className="flex-1">
 								<Text
 									className={`text-sm font-semibold leading-snug ${
@@ -431,7 +331,6 @@ export function ShoppingListScreen() {
 								) : null}
 							</View>
 
-							{/* Delete button */}
 							<Pressable
 								onPress={() => handleRemoveItem(item.id)}
 								hitSlop={8}

@@ -164,6 +164,23 @@ export async function fetchIngredients(): Promise<string[]> {
 	return data.meals?.map((i) => i.strIngredient) || [];
 }
 
+export async function fetchMealCounts(): Promise<{
+	categories: number;
+	meals: number;
+}> {
+	const categories = await fetchCategories();
+	const mealCountsPerCategory = await Promise.all(
+		categories.map((category) =>
+			fetchMealsByCategory(category).then((meals) => meals.length),
+		),
+	);
+	const totalMeals = mealCountsPerCategory.reduce(
+		(sum, count) => sum + count,
+		0,
+	);
+	return { categories: categories.length, meals: totalMeals };
+}
+
 export async function fetchMealsByIngredient(
 	ingredient: string,
 ): Promise<Meal[]> {

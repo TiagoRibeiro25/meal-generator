@@ -1,28 +1,19 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { fetchAreas } from "../services/mealService";
+import { useRemoteList } from "./useRemoteList";
 
 export function useAreas() {
-	const [areas, setAreas] = useState<string[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	const fetcher = useCallback(fetchAreas, []);
 
-	const load = useCallback(async () => {
-		setLoading(true);
-		setError(null);
-		try {
-			const fetched = await fetchAreas();
-			setAreas(fetched);
-		} catch (e: any) {
-			console.error(e);
-			setError(e.message || "Failed to load areas");
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+	const {
+		data: areas,
+		loading,
+		error,
+		reload,
+	} = useRemoteList({
+		fetcher,
+		label: "areas",
+	});
 
-	useEffect(() => {
-		load();
-	}, [load]);
-
-	return { areas, loading, error, reload: load };
+	return { areas, loading, error, reload };
 }

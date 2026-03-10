@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -15,20 +15,28 @@ import {
 import {
 	useAreas,
 	useCategories,
+	useIngredients,
 	useMealsByArea,
 	useMealsByCategory,
 	useMealsByIngredient,
 	useNetworkStatus,
 } from "../hooks";
 import { RootStackParamList } from "../navigation/StackNavigator";
-import { fetchIngredients, fetchMealById } from "../services/mealService";
+import { fetchMealById } from "../services/mealService";
 import { Meal } from "../types/Meal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Filters">;
 type Tab = "category" | "area" | "ingredient";
 
+const TAB_CONFIG: { id: Tab; icon: string; label: string }[] = [
+	{ id: "category", icon: "🍽️", label: "Category" },
+	{ id: "area", icon: "🌍", label: "Cuisine" },
+	{ id: "ingredient", icon: "🥕", label: "Ingredient" },
+];
+
 export function FilterScreen({ navigation }: Props) {
 	const isConnected = useNetworkStatus();
+
 	const [activeTab, setActiveTab] = useState<Tab>("category");
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 	const [selectedArea, setSelectedArea] = useState<string | null>(null);
@@ -37,16 +45,6 @@ export function FilterScreen({ navigation }: Props) {
 	);
 	const [mealError, setMealError] = useState<string | null>(null);
 
-	// Ingredient search state
-	const [ingredientQuery, setIngredientQuery] = useState("");
-	const [allIngredients, setAllIngredients] = useState<string[]>([]);
-	const [filteredIngredients, setFilteredIngredients] = useState<string[]>([]);
-	const [loadingIngredients, setLoadingIngredients] = useState(false);
-	const [ingredientListError, setIngredientListError] = useState<string | null>(
-		null,
-	);
-
-	// Category data
 	const {
 		categories,
 		loading: loadingCategories,
@@ -54,7 +52,6 @@ export function FilterScreen({ navigation }: Props) {
 		reload: reloadCategories,
 	} = useCategories();
 
-	// Area data
 	const {
 		areas,
 		loading: loadingAreas,
@@ -62,7 +59,14 @@ export function FilterScreen({ navigation }: Props) {
 		reload: reloadAreas,
 	} = useAreas();
 
-	// Meals data
+	const {
+		filteredIngredients,
+		query: ingredientQuery,
+		setQuery: setIngredientQuery,
+		loading: loadingIngredients,
+		error: ingredientListError,
+	} = useIngredients(activeTab === "ingredient");
+
 	const {
 		meals: categoryMeals,
 		loading: loadingCategoryMeals,
@@ -83,86 +87,6 @@ export function FilterScreen({ navigation }: Props) {
 		activeTab === "ingredient" ? selectedIngredient : null,
 	);
 
-	// Load all ingredients when ingredient tab is first opened
-	useEffect(() => {
-		if (activeTab !== "ingredient" || allIngredients.length > 0) return;
-
-		async function loadIngredients() {
-			setLoadingIngredients(true);
-			setIngredientListError(null);
-			try {
-				const list = await fetchIngredients();
-				const sorted = [...list].sort((a, b) => a.localeCompare(b));
-				setAllIngredients(sorted);
-				setFilteredIngredients(sorted);
-			} catch (e: any) {
-				setIngredientListError(e.message || "Failed to load ingredients");
-			} finally {
-				setLoadingIngredients(false);
-			}
-		}
-
-		loadIngredients();
-	}, [activeTab, allIngredients.length]);
-
-	// Filter ingredient list as user types
-	useEffect(() => {
-		if (!ingredientQuery.trim()) {
-			setFilteredIngredients(allIngredients);
-			return;
-		}
-		const q = ingredientQuery.toLowerCase();
-		setFilteredIngredients(
-			allIngredients.filter((ing) => ing.toLowerCase().includes(q)),
-		);
-	}, [ingredientQuery, allIngredients]);
-
-	const handleTabSwitch = useCallback((tab: Tab) => {
-		setActiveTab(tab);
-		setMealError(null);
-	}, []);
-
-	const handleMealPress = useCallback(
-		async (id: string) => {
-			try {
-				const meal = await fetchMealById(id);
-				navigation.navigate("Meal", { meal });
-			} catch (e: any) {
-				console.error(e);
-				setMealError(e.message || "Failed to load meal details");
-			}
-		},
-		[navigation],
-	);
-
-	const renderMealItem = useCallback(
-		({ item }: { item: Meal }) => (
-			<MealCard meal={item} onPress={() => handleMealPress(item.idMeal)} />
-		),
-		[handleMealPress],
-	);
-
-	// Full-screen network error only when we have no data at all
-	const fatalError =
-		activeTab === "category"
-			? categoryError && !loadingCategories && categories.length === 0
-			: activeTab === "area"
-				? areaError && !loadingAreas && areas.length === 0
-				: false;
-
-	if (fatalError) {
-		return (
-			<SafeAreaView className="flex-1 bg-zinc-950">
-				{isConnected === false && <OfflineIndicator />}
-				<NetworkError
-					onRetry={activeTab === "category" ? reloadCategories : reloadAreas}
-					message={activeTab === "category" ? categoryError! : areaError!}
-				/>
-			</SafeAreaView>
-		);
-	}
-
-	// Derive active-tab values
 	const meals =
 		activeTab === "category"
 			? categoryMeals
@@ -194,14 +118,57 @@ export function FilterScreen({ navigation }: Props) {
 	const loadingItems =
 		activeTab === "category" ? loadingCategories : loadingAreas;
 	const items = activeTab === "category" ? categories : areas;
-
 	const hasResults = meals.length > 0 && !loadingMeals;
 
-	const TAB_CONFIG: { id: Tab; icon: string; label: string }[] = [
-		{ id: "category", icon: "🍽️", label: "Category" },
-		{ id: "area", icon: "🌍", label: "Cuisine" },
-		{ id: "ingredient", icon: "🥕", label: "Ingredient" },
-	];
+	const handleTabSwitch = useCallback((tab: Tab) => {
+		setActiveTab(tab);
+		setMealError(null);
+	}, []);
+
+	const handleClearSelection = useCallback(() => {
+		if (activeTab === "category") setSelectedCategory(null);
+		else if (activeTab === "area") setSelectedArea(null);
+		else setSelectedIngredient(null);
+	}, [activeTab]);
+
+	const handleMealPress = useCallback(
+		async (id: string) => {
+			try {
+				const meal = await fetchMealById(id);
+				navigation.navigate("Meal", { meal });
+			} catch (e: any) {
+				console.error("[FilterScreen] Failed to load meal:", e);
+				setMealError(e.message || "Failed to load meal details");
+			}
+		},
+		[navigation],
+	);
+
+	const renderMealItem = useCallback(
+		({ item }: { item: Meal }) => (
+			<MealCard meal={item} onPress={() => handleMealPress(item.idMeal)} />
+		),
+		[handleMealPress],
+	);
+
+	const fatalError =
+		activeTab === "category"
+			? categoryError && !loadingCategories && categories.length === 0
+			: activeTab === "area"
+				? areaError && !loadingAreas && areas.length === 0
+				: false;
+
+	if (fatalError) {
+		return (
+			<SafeAreaView className="flex-1 bg-zinc-950">
+				{isConnected === false && <OfflineIndicator />}
+				<NetworkError
+					onRetry={activeTab === "category" ? reloadCategories : reloadAreas}
+					message={activeTab === "category" ? categoryError! : areaError!}
+				/>
+			</SafeAreaView>
+		);
+	}
 
 	return (
 		<SafeAreaView className="flex-1 bg-zinc-950">
@@ -226,7 +193,6 @@ export function FilterScreen({ navigation }: Props) {
 					</Text>
 				</Text>
 
-				{/* Tab switcher */}
 				<View className="flex-row mt-4 p-1 rounded-2xl bg-zinc-900 border border-zinc-800">
 					{TAB_CONFIG.map((tab) => (
 						<Pressable
@@ -248,7 +214,6 @@ export function FilterScreen({ navigation }: Props) {
 					))}
 				</View>
 
-				{/* Selected filter badge (category / area) */}
 				{activeTab !== "ingredient" && selected && (
 					<View className="flex-row items-center mt-3">
 						<View className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
@@ -263,11 +228,7 @@ export function FilterScreen({ navigation }: Props) {
 							</Text>
 						)}
 						<Pressable
-							onPress={() =>
-								activeTab === "category"
-									? setSelectedCategory(null)
-									: setSelectedArea(null)
-							}
+							onPress={handleClearSelection}
 							className="ml-auto items-center justify-center w-7 h-7 rounded-full bg-zinc-800 active:bg-zinc-700"
 						>
 							<Text className="text-xs font-bold text-zinc-400">✕</Text>
@@ -275,7 +236,6 @@ export function FilterScreen({ navigation }: Props) {
 					</View>
 				)}
 
-				{/* Ingredient search bar */}
 				{activeTab === "ingredient" && !selectedIngredient && (
 					<View className="flex-row items-center mt-3 px-4 border-2 border-zinc-700 bg-zinc-900 rounded-2xl focus-within:border-emerald-500">
 						<Text className="mr-2 text-base">🔍</Text>
@@ -299,7 +259,6 @@ export function FilterScreen({ navigation }: Props) {
 					</View>
 				)}
 
-				{/* Selected ingredient badge */}
 				{activeTab === "ingredient" && selectedIngredient && (
 					<View className="flex-row items-center mt-3">
 						<View className="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30">
@@ -313,7 +272,7 @@ export function FilterScreen({ navigation }: Props) {
 							</Text>
 						)}
 						<Pressable
-							onPress={() => setSelectedIngredient(null)}
+							onPress={handleClearSelection}
 							className="ml-auto items-center justify-center w-7 h-7 rounded-full bg-zinc-800 active:bg-zinc-700"
 						>
 							<Text className="text-xs font-bold text-zinc-400">✕</Text>
@@ -330,7 +289,6 @@ export function FilterScreen({ navigation }: Props) {
 				)}
 			</View>
 
-			{/* Error banners */}
 			{categoryError && activeTab === "category" && (
 				<ErrorBanner message={categoryError} />
 			)}
@@ -342,7 +300,6 @@ export function FilterScreen({ navigation }: Props) {
 				<ErrorBanner message={mealError || mealsError!} />
 			)}
 
-			{/* Category / Area filter chips */}
 			{activeTab !== "ingredient" && (
 				<View className="bg-zinc-950">
 					{loadingItems ? (
@@ -364,7 +321,6 @@ export function FilterScreen({ navigation }: Props) {
 				<View className="h-px mx-6 bg-zinc-800" />
 			)}
 
-			{/* Ingredient picker list */}
 			{activeTab === "ingredient" && !selectedIngredient && (
 				<>
 					{loadingIngredients ? (
@@ -421,7 +377,6 @@ export function FilterScreen({ navigation }: Props) {
 				</>
 			)}
 
-			{/* Meal loading skeletons */}
 			{loadingMeals && (
 				<View className="px-6 pt-4">
 					{[...Array(4)].map((_, i) => (
@@ -430,7 +385,6 @@ export function FilterScreen({ navigation }: Props) {
 				</View>
 			)}
 
-			{/* Meal results */}
 			{hasResults && (
 				<FlatList
 					data={meals}
@@ -449,7 +403,6 @@ export function FilterScreen({ navigation }: Props) {
 				/>
 			)}
 
-			{/* Empty state after selection */}
 			{selected && !loadingMeals && meals.length === 0 && !mealsError && (
 				<View className="items-center justify-center flex-1 px-6">
 					<Text className="mb-2 text-5xl">🍽️</Text>
